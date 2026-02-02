@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Abstract - Job AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+            margin-top: 40px;
+            font-size: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--glass);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .diagram-placeholder {
+            width: 100%;
+            height: 400px;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-style: italic;
+            color: var(--secondary);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; width: 100%; max-width: 100%; }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Project Abstract: Job AI</h1>
+        
+        <section id="abstract">
+            <p><strong>Job AI</strong> is a modern recruitment platform that leverages Artificial Intelligence to match job seekers with relevant opportunities. The system parses resumes, extracts key skills, and provides a match score based on job requirements, streamlining the application process for both candidates and employers.</p>
+        </section>
+
+        <h2>1. Database Schema</h2>
+        
+        <h3>User Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>_id</td><td>ObjectId</td><td>Unique identifier</td></tr>
+                <tr><td>name</td><td>String</td><td>Full name of the user</td></tr>
+                <tr><td>email</td><td>String</td><td>Unique email address</td></tr>
+                <tr><td>role</td><td>String</td><td>user, admin, job_seeker, job_provider</td></tr>
+                <tr><td>skills</td><td>Array[String]</td><td>Extracted skills</td></tr>
+                <tr><td>experience</td><td>Array[Object]</td><td>Work experience details</td></tr>
+                <tr><td>isProfileComplete</td><td>Boolean</td><td>Profile completion status</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Job Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>_id</td><td>ObjectId</td><td>Unique identifier</td></tr>
+                <tr><td>title</td><td>String</td><td>Job title</td></tr>
+                <tr><td>company</td><td>String</td><td>Hiring company</td></tr>
+                <tr><td>location</td><td>String</td><td>Job location</td></tr>
+                <tr><td>requirements</td><td>Array[String]</td><td>Key job requirements</td></tr>
+                <tr><td>salaryRange</td><td>String</td><td>Expected salary</td></tr>
+                <tr><td>postedBy</td><td>ObjectId</td><td>Reference to User (job_provider)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Application Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>_id</td><td>ObjectId</td><td>Unique identifier</td></tr>
+                <tr><td>job</td><td>ObjectId</td><td>Reference to Job</td></tr>
+                <tr><td>user</td><td>ObjectId</td><td>Reference to User (job_seeker)</td></tr>
+                <tr><td>status</td><td>String</td><td>Pending, Reviewed, Accepted, etc.</td></tr>
+                <tr><td>appliedAt</td><td>Date</td><td>Timestamp of application</td></tr>
+            </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <h2>2. Chen ER Diagram</h2>
+        <div class="mermaid">
+            graph TD
+                %% Entities
+                User[("User")]
+                Job[("Job")]
+                Application[("Application")]
+
+                %% Attributes for User
+                U_ID((_id)) --- User
+                U_Name((Name)) --- User
+                U_Email((Email)) --- User
+                U_Role((Role)) --- User
+
+                %% Attributes for Job
+                J_ID((_id)) --- Job
+                J_Title((Title)) --- Job
+                J_Company((Company)) --- Job
+
+                %% Attributes for Application
+                A_ID((_id)) --- Application
+                A_Status((Status)) --- Application
+
+                %% Relationships
+                Provides{Posts}
+                Applies{Applies}
+                Linked{Linked To}
+
+                User --- Provides
+                Provides --- Job
+                
+                User --- Applies
+                Applies --- Application
+                
+                Application --- Linked
+                Linked --- Job
+
+                style Provides fill:#f9f,stroke:#333
+                style Applies fill:#f9f,stroke:#333
+                style Linked fill:#f9f,stroke:#333
+        </div>
+
+        <div class="page-break"></div>
+
+        <h2>3. Dataflow Diagram (Level 1)</h2>
+        <div class="mermaid">
+            graph LR
+                JS[Job Seeker]
+                JP[Job Provider]
+                
+                subgraph Job_AI_System
+                    P1[Register/Login]
+                    P2[Upload Resume]
+                    P3[Post Job]
+                    P4[Match & Apply]
+                    P5[Review Apps]
+                end
+
+                DB[(Database)]
+
+                JS -->|Details| P1
+                P1 --> DB
+                JS -->|Resume| P2
+                P2 --> DB
+                
+                JP -->|Job Details| P3
+                P3 --> DB
+                
+                JS -->|Apply| P4
+                DB -->|Matches| P4
+                P4 --> DB
+                
+                JP -->|View| P5
+                DB -->|Applications| P5
+        </div>
+    </div>
+</body>
+</html>

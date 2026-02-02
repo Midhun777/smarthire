@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Abstract - Job AI Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            padding: 0.5in 1in;
+        }
+
+        .container { max-width: 8.5in; margin: 0 auto; }
+        
+        /* Title Page */
+        .title-page {
+            text-align: center;
+            padding: 2in 0;
+            page-break-after: always;
+        }
+        
+        .title-page h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1in;
+            letter-spacing: 2px;
+        }
+        
+        .title-page h2 {
+            font-size: 20pt;
+            font-weight: bold;
+            margin-bottom: 0.5in;
+        }
+        
+        .title-page .info {
+            font-size: 14pt;
+            margin-top: 1.5in;
+            line-height: 2;
+        }
+        
+        /* Headings */
+        h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 0.3in;
+            margin-bottom: 0.2in;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5pt;
+        }
+        
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 0.25in;
+            margin-bottom: 0.15in;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 0.2in;
+            margin-bottom: 0.1in;
+        }
+        
+        p {
+            font-size: 12pt;
+            text-align: justify;
+            margin-bottom: 0.15in;
+        }
+        
+        /* Tables */
+        .table-section {
+            margin: 0.2in 0;
+        }
+        
+        .table-name {
+            font-weight: bold;
+            font-size: 12pt;
+            margin: 0.1in 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.15in 0;
+            font-size: 11pt;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 8pt;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #e8e8e8;
+            font-weight: bold;
+        }
+        
+        /* Diagrams */
+        .diagram-container {
+            margin: 0.2in 0;
+            padding: 15pt;
+            border: 1px solid #ccc;
+            background: #fafafa;
+        }
+        
+        .diagram-caption {
+            text-align: center;
+            font-style: italic;
+            font-size: 11pt;
+            margin-top: 10pt;
+        }
+        
+        .page-break { page-break-before: always; }
+        
+        @media print {
+            body { padding: 0; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'neutral',
+            flowchart: { useMaxWidth: true }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- TITLE PAGE -->
+        <div class="title-page">
+            <h1>Project Abstract</h1>
+            <h2>Job AI: Intelligent Recruitment Platform</h2>
+            <div class="info">
+                <p><strong>Submitted to:</strong><br>
+                Department of Computer Science<br>
+                [College/University Name]</p>
+                
+                <p style="margin-top: 0.5in;"><strong>Prepared by:</strong><br>
+                [Student Name]<br>
+                [Roll Number/Registration Number]<br>
+                [Academic Year]</p>
+            </div>
+        </div>
+
+        <!-- ABSTRACT -->
+        <section>
+            <h2>ABSTRACT</h2>
+            <p>
+                The Job AI platform is an intelligent recruitment system designed to streamline the hiring process through automated candidate-job matching. The system leverages artificial intelligence to parse resumes, extract relevant skills and experience, and compute compatibility scores between job seekers and available positions. This platform serves three primary user roles: Administrators who manage platform operations, Job Providers who post vacancies, and Job Seekers who apply for positions. The system architecture is built on a relational database model with well-defined entities and relationships, ensuring data integrity and efficient query processing.
+            </p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- DATABASE TABLES -->
+        <section>
+            <h2>1. DATABASE TABLE DEFINITIONS</h2>
+            
+            <div class="table-section">
+                <p><strong>Description:</strong> Stores comprehensive information about all platform users including authentication credentials and role-based access control.</p>
+                <p class="table-name">TABLE NAME: tbl_users</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl no</th>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td>Primary Key - Unique user identifier</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>full_name</td>
+                            <td>VARCHAR(100)</td>
+                            <td>Complete name of the user</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>email_address</td>
+                            <td>VARCHAR(100)</td>
+                            <td>Unique email for authentication</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>password_hash</td>
+                            <td>VARCHAR(255)</td>
+                            <td>Encrypted password credential</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>user_role</td>
+                            <td>VARCHAR(20)</td>
+                            <td>Role type: admin, job_seeker, job_provider</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>created_at</td>
+                            <td>DATETIME</td>
+                            <td>Account creation timestamp</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-section">
+                <p><strong>Description:</strong> Contains detailed professional profiles for job seekers including skills and experience extracted from resumes.</p>
+                <p class="table-name">TABLE NAME: tbl_seeker_profiles</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl no</th>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>profile_id</td>
+                            <td>INT</td>
+                            <td>Primary Key - Unique profile identifier</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td>Foreign Key - References tbl_users(user_id)</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>skills_list</td>
+                            <td>TEXT</td>
+                            <td>Comma-separated technical and soft skills</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>experience_years</td>
+                            <td>INT</td>
+                            <td>Total years of professional experience</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>resume_text</td>
+                            <td>TEXT</td>
+                            <td>Parsed resume content for AI analysis</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>is_complete</td>
+                            <td>BOOLEAN</td>
+                            <td>Profile completion status flag</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-section">
+                <p><strong>Description:</strong> Stores job vacancy postings with requirements and categorization for efficient matching.</p>
+                <p class="table-name">TABLE NAME: tbl_job_listings</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl no</th>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>job_id</td>
+                            <td>INT</td>
+                            <td>Primary Key - Unique job identifier</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>job_title</td>
+                            <td>VARCHAR(150)</td>
+                            <td>Position title or designation</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>company_name</td>
+                            <td>VARCHAR(100)</td>
+                            <td>Hiring organization name</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>job_description</td>
+                            <td>TEXT</td>
+                            <td>Detailed role responsibilities</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>requirements</td>
+                            <td>TEXT</td>
+                            <td>Required skills and qualifications</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>category_id</td>
+                            <td>INT</td>
+                            <td>Foreign Key - References tbl_categories(category_id)</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>posted_by</td>
+                            <td>INT</td>
+                            <td>Foreign Key - References tbl_users(user_id)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-section">
+                <p><strong>Description:</strong> Tracks job applications submitted by seekers with status management.</p>
+                <p class="table-name">TABLE NAME: tbl_applications</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl no</th>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>application_id</td>
+                            <td>INT</td>
+                            <td>Primary Key - Unique application identifier</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>job_id</td>
+                            <td>INT</td>
+                            <td>Foreign Key - References tbl_job_listings(job_id)</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td>Foreign Key - References tbl_users(user_id)</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>application_status</td>
+                            <td>VARCHAR(20)</td>
+                            <td>Status: Pending, Reviewed, Shortlisted, Rejected</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>applied_date</td>
+                            <td>DATETIME</td>
+                            <td>Application submission timestamp</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>match_score</td>
+                            <td>DECIMAL(5,2)</td>
+                            <td>AI-computed compatibility percentage</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-section">
+                <p><strong>Description:</strong> Defines job categories for classification and filtering purposes.</p>
+                <p class="table-name">TABLE NAME: tbl_categories</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl no</th>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>category_id</td>
+                            <td>INT</td>
+                            <td>Primary Key - Unique category identifier</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>category_name</td>
+                            <td>VARCHAR(50)</td>
+                            <td>Category label (e.g., IT, Healthcare)</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>description</td>
+                            <td>VARCHAR(200)</td>
+                            <td>Category description</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- ER DIAGRAM -->
+        <section>
+            <h2>2. ENTITY RELATIONSHIP DIAGRAM (CHEN MODEL)</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph TD
+    %% Central Entity - User
+    User["<b>User</b><br/>(Entity)"]
+    U_ID(("<u>user_id</u>"))
+    U_Name(("full_name"))
+    U_Email(("email_address"))
+    U_Role(("user_role"))
+    
+    U_ID --- User
+    U_Name --- User
+    U_Email --- User
+    U_Role --- User
+    
+    %% Relationship 1: Creates Profile
+    Creates{"<b>Creates</b>"}
+    User --- Creates
+    
+    %% Dependent Entity 1: Seeker Profile
+    Profile["<b>Seeker_Profile</b><br/>(Entity)"]
+    P_ID(("<u>profile_id</u>"))
+    P_Skills(("skills_list"))
+    P_UserFK(("FK: user_id"))
+    P_JobFK(("FK: job_id"))
+    
+    P_ID --- Profile
+    P_Skills --- Profile
+    P_UserFK --- Profile
+    P_JobFK --- Profile
+    
+    Creates --- Profile
+    
+    %% Relationship 2: Submits Application
+    Submits{"<b>Submits</b>"}
+    User --- Submits
+    
+    %% Dependent Entity 2: Application
+    Application["<b>Application</b><br/>(Entity)"]
+    A_ID(("<u>application_id</u>"))
+    A_Status(("status"))
+    A_UserFK(("FK: user_id"))
+    A_JobFK(("FK: job_id"))
+    
+    A_ID --- Application
+    A_Status --- Application
+    A_UserFK --- Application
+    A_JobFK --- Application
+    
+    Submits --- Application
+    
+    %% Relationship 3: Posts Job
+    Posts{"<b>Posts</b>"}
+    User --- Posts
+    
+    %% Shared Core Entity: Job
+    Job["<b>Job_Listing</b><br/>(Entity)"]
+    J_ID(("<u>job_id</u>"))
+    J_Title(("job_title"))
+    J_Company(("company_name"))
+    J_CatFK(("FK: category_id"))
+    
+    J_ID --- Job
+    J_Title --- Job
+    J_Company --- Job
+    J_CatFK --- Job
+    
+    Posts --- Job
+    
+    %% Connections to Core Entity
+    Profile -.->|"References"| Job
+    Application -.->|"References"| Job
+    
+    %% Relationship 4: Belongs To Category
+    BelongsTo{"<b>Belongs_To</b>"}
+    Job --- BelongsTo
+    
+    %% Classification Entity: Category
+    Category["<b>Category</b><br/>(Entity)"]
+    C_ID(("<u>category_id</u>"))
+    C_Name(("category_name"))
+    C_Desc(("description"))
+    
+    C_ID --- Category
+    C_Name --- Category
+    C_Desc --- Category
+    
+    BelongsTo --- Category
+    
+    %% Styling
+    classDef entityStyle fill:#fff,stroke:#000,stroke-width:2px
+    classDef relationStyle fill:#fff,stroke:#000,stroke-width:1.5px
+    classDef attrStyle fill:#fff,stroke:#000,stroke-width:1px
+    
+    class User,Profile,Application,Job,Category entityStyle
+    class Creates,Submits,Posts,BelongsTo relationStyle
+                </div>
+                <p class="diagram-caption">Figure 2.1: Chen ER Model showing entities, attributes, and relationships</p>
+            </div>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- DATA FLOW DIAGRAMS -->
+        <section>
+            <h2>3. DATA FLOW DIAGRAMS (DFD)</h2>
+            
+            <h3>3.1 Level 0 - Context Diagram</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph LR
+    Admin["<b>Admin</b><br/>(External Entity)"]
+    Seeker["<b>Job Seeker</b><br/>(External Entity)"]
+    Provider["<b>Job Provider</b><br/>(External Entity)"]
+    
+    System(("<b>Job AI<br/>Recruitment<br/>System</b>"))
+    
+    Admin -->|"User Management<br/>Request"| System
+    System -->|"System Reports<br/>Response"| Admin
+    
+    Seeker -->|"Job Search &<br/>Application Request"| System
+    System -->|"Job Matches &<br/>Status Response"| Seeker
+    
+    Provider -->|"Job Posting<br/>Request"| System
+    System -->|"Candidate List<br/>Response"| Provider
+    
+    style Admin fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style Seeker fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style Provider fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style System fill:#fff,stroke:#000,stroke-width:3px
+                </div>
+                <p class="diagram-caption">Figure 3.1: Context Level DFD showing external entities and system interaction</p>
+            </div>
+            
+            <h3>3.2 Level 1 - Admin Module</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph LR
+    Admin["<b>Admin</b>"]
+    
+    P1(("1.0<br/>Login<br/>Authentication"))
+    P2(("2.0<br/>Manage<br/>Users"))
+    P3(("3.0<br/>Manage<br/>Content"))
+    P4(("4.0<br/>Generate<br/>Reports"))
+    
+    D1[("tbl_users")]
+    D2[("tbl_job_listings")]
+    D3[("tbl_applications")]
+    
+    Admin -->|"Username<br/>Password"| P1
+    P1 -->|"Auth Token"| P2
+    P1 -->|"Auth Token"| P3
+    P1 -->|"Auth Token"| P4
+    
+    P2 <-->|"View/Edit<br/>User Data"| D1
+    P3 <-->|"View/Edit<br/>Job Data"| D2
+    P4 -->|"Fetch<br/>Statistics"| D3
+    
+    P2 -->|"User List"| Admin
+    P3 -->|"Content Status"| Admin
+    P4 -->|"Analytics"| Admin
+    
+    style Admin fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style D1 fill:#fff,stroke:#000,stroke-width:2px
+    style D2 fill:#fff,stroke:#000,stroke-width:2px
+    style D3 fill:#fff,stroke:#000,stroke-width:2px
+                </div>
+                <p class="diagram-caption">Figure 3.2: Level 1 DFD for Admin Module with authentication and management processes</p>
+            </div>
+            
+            <h3>3.3 Level 1.2 - Job Provider Module</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph LR
+    Provider["<b>Job Provider</b>"]
+    
+    P1(("1.0<br/>Login<br/>Authentication"))
+    P2(("5.0<br/>Post<br/>Jobs"))
+    P3(("6.0<br/>Review<br/>Applications"))
+    
+    D1[("tbl_job_listings")]
+    D2[("tbl_applications")]
+    
+    Provider -->|"Username<br/>Password"| P1
+    P1 -->|"Auth Token"| P2
+    P1 -->|"Auth Token"| P3
+    
+    P2 -->|"Save Job<br/>Details"| D1
+    P3 -->|"Fetch<br/>Applications"| D2
+    
+    D1 -->|"Job Confirmation"| P2
+    D2 -->|"Candidate List"| P3
+    
+    P2 -->|"Success Message"| Provider
+    P3 -->|"Application Data"| Provider
+    
+    style Provider fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style D1 fill:#fff,stroke:#000,stroke-width:2px
+    style D2 fill:#fff,stroke:#000,stroke-width:2px
+                </div>
+                <p class="diagram-caption">Figure 3.3: Level 1.2 DFD for Job Provider Module</p>
+            </div>
+            
+            <h3>3.4 Level 1.3 - Job Seeker Module</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph LR
+    Seeker["<b>Job Seeker</b>"]
+    
+    P1(("1.0<br/>Login<br/>Authentication"))
+    P2(("7.0<br/>Create/Update<br/>Profile"))
+    P3(("8.0<br/>Apply for<br/>Jobs"))
+    
+    D1[("tbl_seeker_profiles")]
+    D2[("tbl_applications")]
+    
+    Seeker -->|"Username<br/>Password"| P1
+    P1 -->|"Auth Token"| P2
+    P1 -->|"Auth Token"| P3
+    
+    P2 <-->|"Read/Write<br/>Profile Data"| D1
+    P3 <-->|"Read/Write<br/>Application"| D2
+    
+    D1 -->|"Profile Status"| P2
+    D2 -->|"Application Status"| P3
+    
+    P2 -->|"Profile Updated"| Seeker
+    P3 -->|"Application Submitted"| Seeker
+    
+    style Seeker fill:#f9f9f9,stroke:#000,stroke-width:2px
+    style D1 fill:#fff,stroke:#000,stroke-width:2px
+    style D2 fill:#fff,stroke:#000,stroke-width:2px
+                </div>
+                <p class="diagram-caption">Figure 3.4: Level 1.3 DFD for Job Seeker Module with read/write operations</p>
+            </div>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CONCLUSION -->
+        <section>
+            <h2>4. CONCLUSION</h2>
+            <p>
+                The Job AI platform provides a comprehensive solution for modern recruitment challenges through intelligent automation. The database architecture ensures normalized data storage with proper referential integrity through foreign key relationships. The Chen ER model clearly illustrates the central role of the User entity and its interactions with dependent entities, all connected through the core Job_Listing entity. The hierarchical data flow diagrams demonstrate the logical flow of information across different user modules, ensuring secure authentication and role-based access control. This system architecture supports scalability and maintainability while providing an efficient framework for AI-powered job matching.
+            </p>
+        </section>
+    </div>
+</body>
+</html>
