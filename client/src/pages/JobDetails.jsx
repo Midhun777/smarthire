@@ -81,7 +81,7 @@ const JobDetails = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
             <div className="w-12 h-12 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-gray-500 font-bold animate-pulse tracking-widest uppercase text-xs">Analyzing Metadata</p>
+            <p className="text-gray-500 font-bold animate-pulse tracking-widest uppercase text-xs">Loading Details</p>
         </div>
     );
     if (!job) return <div className="text-center py-20 font-black text-gray-400">Job not found</div>;
@@ -130,10 +130,10 @@ const JobDetails = () => {
                             </div>
 
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-job-neutral rounded-3xl border border-white">
-                                <DetailItem label="Salary Range" value={job.salaryRange || 'NDA'} icon={IndianRupee} color="text-green-600" />
-                                <DetailItem label="Exp. Level" value={job.experienceLevel} icon={Target} color="text-job-primary" />
-                                <DetailItem label="Employment" value={job.type} icon={Clock} color="text-job-secondary" />
-                                <DetailItem label="Role Class" value="Tier 1" icon={Zap} color="text-amber-500" />
+                                <DetailItem label="Salary" value={job.salaryRange || 'Not disclosed'} icon={IndianRupee} color="text-green-600" />
+                                <DetailItem label="Experience" value={job.experienceLevel} icon={Target} color="text-job-primary" />
+                                <DetailItem label="Job Type" value={job.type} icon={Clock} color="text-job-secondary" />
+                                <DetailItem label="Level" value="Standard" icon={Zap} color="text-amber-500" />
                             </div>
                         </div>
                     </Card>
@@ -144,7 +144,7 @@ const JobDetails = () => {
                                 <div className="w-10 h-10 bg-job-dark/5 rounded-2xl flex items-center justify-center mr-4">
                                     <FileTextIcon size={20} />
                                 </div>
-                                Mission Description
+                                Job Description
                             </h3>
                             <div className="bg-white/40 backdrop-blur-sm border border-white/60 p-8 rounded-[2rem] shadow-sm">
                                 <p className="text-gray-500 font-medium leading-[2] whitespace-pre-line text-lg">
@@ -158,7 +158,7 @@ const JobDetails = () => {
                                 <div className="w-10 h-10 bg-job-dark/5 rounded-2xl flex items-center justify-center mr-4">
                                     <Target size={20} />
                                 </div>
-                                Core Requirements
+                                Requirements
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {job.requirements && job.requirements.map((req, idx) => (
@@ -179,7 +179,7 @@ const JobDetails = () => {
                     <div className="sticky top-28 space-y-6">
                         {/* Application Action Card */}
                         <Card className="p-8 border-white shadow-2xl shadow-job-primary/5">
-                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Action Hub</h3>
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Apply for Job</h3>
                             {isApplied ? (
                                 <div className="space-y-4">
                                     <div className="bg-green-500 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-green-200">
@@ -201,7 +201,7 @@ const JobDetails = () => {
                                 </Button>
                             )}
                             <p className="text-[10px] text-center mt-6 text-gray-400 font-bold uppercase tracking-widest leading-loose">
-                                By applying, your profile artifact will be shared with the recruiting team.
+                                By applying, your profile will be shared with the recruiting team.
                             </p>
                         </Card>
 
@@ -214,13 +214,13 @@ const JobDetails = () => {
                                     <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
                                         <Sparkles size={18} />
                                     </div>
-                                    <h3 className="text-sm font-black text-job-dark uppercase tracking-widest">AI Scoring</h3>
+                                    <h3 className="text-sm font-black text-job-dark uppercase tracking-widest">Match Score</h3>
                                 </div>
 
                                 {matching ? (
                                     <div className="flex flex-col items-center py-6 space-y-4">
                                         <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-                                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] animate-pulse">Running Neural Match</span>
+                                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] animate-pulse">Calculating Match</span>
                                     </div>
                                 ) : matchData ? (
                                     <div className="space-y-8 relative z-10">
@@ -241,7 +241,7 @@ const JobDetails = () => {
                                                 </div>
                                             </div>
                                             <div className="flex-grow ml-6">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 leading-tight mb-2">Confidence Level</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 leading-tight mb-2">Match Confidence</p>
                                                 <Badge variant="success" className="bg-amber-500 text-white border-0 shadow-lg shadow-amber-200">
                                                     High Match Potential
                                                 </Badge>
@@ -254,7 +254,7 @@ const JobDetails = () => {
 
                                         {matchData.missingSkills && matchData.missingSkills.length > 0 && (
                                             <div className="space-y-4">
-                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gap Detection</h4>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Missing Skills</h4>
                                                 <div className="flex flex-wrap gap-2">
                                                     {matchData.missingSkills.map((skill, idx) => (
                                                         <Badge key={idx} variant="gray" className="text-[10px] py-1 border-gray-200">
@@ -269,7 +269,7 @@ const JobDetails = () => {
                                     <div className="text-center py-6 group cursor-pointer" onClick={() => window.location.href = '/profile'}>
                                         <AlertCircle className="mx-auto w-10 h-10 text-amber-200 mb-4 group-hover:scale-110 transition-transform" />
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-loose">
-                                            Resume Artifact Required <br />
+                                            Resume Required <br />
                                             <span className="text-amber-500 underline decoration-2 underline-offset-4">Click to Upload</span>
                                         </p>
                                     </div>

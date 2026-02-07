@@ -4,7 +4,7 @@ import AuthContext from '../context/AuthContext';
 import JobCard from '../components/JobCard';
 import StatCard from '../components/StatCard';
 import { LayoutDashboard, Briefcase, TrendingUp, Sparkles, ChevronRight, Users as UsersIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 
@@ -17,9 +17,20 @@ const Dashboard = () => {
     const [filterType, setFilterType] = useState('All');
     const [loading, setLoading] = useState(true);
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     useEffect(() => {
+        // Redirect if user is a provider
+        if (user?.role === 'job_provider') {
+            navigate('/provider-dashboard');
+            return;
+        }
+
         const fetchStats = async () => {
+            if (user?.role !== 'admin') {
+                setStats({ users: 0, jobs: 0, applications: 0 });
+                return;
+            }
             try {
                 const res = await api.get('/applications/stats');
                 const { users, jobs, applications } = res.data;
@@ -35,7 +46,7 @@ const Dashboard = () => {
                 setAllJobs(allJobsRes.data);
                 setFilteredJobs(allJobsRes.data);
 
-                if (user.skills && user.skills.length > 0) {
+                if (user?.skills && user.skills.length > 0) {
                     try {
                         const recommendRes = await api.post('/jobs/recommend');
                         const normalized = recommendRes.data.map(item => ({
@@ -81,7 +92,7 @@ const Dashboard = () => {
         // ... (loading UI remains the same)
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
             <div className="w-12 h-12 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-gray-500 font-bold animate-pulse tracking-widest uppercase text-xs">Loading Opportunities</p>
+            <p className="text-gray-500 font-bold animate-pulse tracking-widest uppercase text-xs">Loading Jobs</p>
         </div>
     );
 
@@ -102,11 +113,11 @@ const Dashboard = () => {
                         <h1 className="text-5xl md:text-6xl font-black mb-6 leading-tight tracking-tighter">
                             Welcome back, <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-job-primary to-job-accent">
-                                {user.name}
+                                {user?.name || 'User'}
                             </span>
                         </h1>
                         <p className="text-lg md:text-xl text-gray-300 font-medium mb-8 leading-relaxed">
-                            We've found new opportunities that match your expertise.
+                            We've found new jobs that match your skills.
                             Ready to take the next step in your career?
                         </p>
                         <div className="flex flex-wrap justify-center md:justify-start gap-4">
@@ -123,19 +134,19 @@ const Dashboard = () => {
             {/* Stats Dashboard */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard icon={TrendingUp} label="Total Jobs" value={stats.jobs} variant="primary" />
-                <StatCard icon={UsersIcon} label="Platforms Users" value={stats.users} variant="secondary" />
-                <StatCard icon={Briefcase} label="Active Apps" value={stats.applications || 0} variant="accent" />
+                <StatCard icon={UsersIcon} label="Total Users" value={stats.users} variant="secondary" />
+                <StatCard icon={Briefcase} label="Applications" value={stats.applications || 0} variant="accent" />
             </section>
 
             {/* Onboarding Banner */}
-            {!user.isProfileComplete && (
+            {user && !user.isProfileComplete && (
                 <Card className="bg-job-primary/5 border-job-primary/20 p-8 md:p-12 text-center md:text-left relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-job-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>
                             <h2 className="text-3xl font-black text-job-dark mb-3 tracking-tight">Unlock Personalized Matches</h2>
                             <p className="text-gray-500 font-medium max-w-lg mb-0 text-lg">
-                                Complete your profile to let our AI scan your skills and recommend the perfect jobs for you.
+                                Complete your profile to let our AI analyze your skills and recommend the perfect jobs for you.
                             </p>
                         </div>
                         <Link to="/complete-profile">
@@ -180,7 +191,7 @@ const Dashboard = () => {
                             <LayoutDashboard className="text-job-primary" />
                         </div>
                         <h2 className="text-3xl font-black text-job-dark tracking-tight">
-                            {recommendedJobs.length > 0 ? 'Explore More Opportunities' : 'Latest Openings'}
+                            {recommendedJobs.length > 0 ? 'Explore More Jobs' : 'Latest Jobs'}
                         </h2>
                     </div>
 
@@ -202,8 +213,8 @@ const Dashboard = () => {
                                     key={type}
                                     onClick={() => setFilterType(type)}
                                     className={`px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterType === type
-                                            ? 'bg-white text-job-primary shadow-sm'
-                                            : 'text-gray-400 hover:text-job-dark'
+                                        ? 'bg-white text-job-primary shadow-sm'
+                                        : 'text-gray-400 hover:text-job-dark'
                                         }`}
                                 >
                                     {type}

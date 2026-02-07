@@ -38,7 +38,8 @@ router.post('/register', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                isProfileComplete: user.isProfileComplete,
+                skills: user.skills,
+                experience: user.experience,
                 token: generateToken(user._id, user.role),
             });
         } else {
@@ -67,6 +68,8 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 role: user.role,
                 isProfileComplete: user.isProfileComplete,
+                skills: user.skills,
+                experience: user.experience,
                 token: generateToken(user._id, user.role),
             });
         } else {

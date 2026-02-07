@@ -5,17 +5,31 @@ const pdf = require('pdf-parse');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Using gemini-1.5-flash for better stability and speed
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-2.5-flash";
 
 const extractSkillsFromResume = async (filePath, mimeType) => {
     try {
         let text = "";
         if (mimeType === 'application/pdf') {
-            const dataBuffer = fs.readFileSync(filePath);
-            const data = await pdf(dataBuffer);
-            text = data.text;
+            try {
+                const dataBuffer = fs.readFileSync(filePath);
+                const data = await pdf(dataBuffer);
+                text = data.text;
+                console.log(`[aiService] Parsed PDF text length: ${text.length}`);
+            } catch (pdfErr) {
+                console.error("PDF Parse Error:", pdfErr);
+                throw new Error("The PDF file appears to be corrupted or its structure is not supported.");
+            }
         } else {
-            return { error: "Only PDF supported for now", skills: [], experience: [] };
+            throw new Error("Only PDF supported for now");
+        }
+
+        if (!text || text.trim().length < 50) {
+            throw new Error("Resume text is too short or empty. Please check the file content.");
+        }
+
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("Gemini API Key is not configured in environment variables.");
         }
 
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
@@ -29,7 +43,7 @@ const extractSkillsFromResume = async (filePath, mimeType) => {
                     { "role": "Job Title", "company": "Company Name", "duration": "Duration", "description": "Brief summary" }
                 ]
             }
-            Do not include any markdown formatting or character prefix/suffix like \`\`\`json. Just the raw JSON string.
+            Do not include any conversational filler or character prefix/suffix.
             
             RESUME TEXT:
             ${text.substring(0, 15000)}
@@ -38,18 +52,32 @@ const extractSkillsFromResume = async (filePath, mimeType) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const textResponse = response.text();
+        console.log(`[aiService] AI Response received: ${textResponse.substring(0, 100)}...`);
 
-        const jsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsedData = JSON.parse(jsonString);
+        // More robust JSON extraction
+        let jsonString = textResponse;
+        const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonString = jsonMatch[0];
+        } else {
+            console.error("No JSON found in AI response:", textResponse);
+            throw new Error("Failed to parse AI response structure");
+        }
 
-        return {
-            ...parsedData,
-            rawText: text
-        };
+        try {
+            const parsedData = JSON.parse(jsonString);
+            return {
+                ...parsedData,
+                rawText: text
+            };
+        } catch (parseErr) {
+            console.error("JSON Parse Error:", parseErr, "Content:", jsonString);
+            throw new Error("Invalid JSON returned by AI");
+        }
 
     } catch (error) {
         console.error("AI Error (Extraction):", error);
-        return { skills: [], experience: [] };
+        return { error: error.message, skills: [], experience: [] };
     }
 };
 
@@ -83,7 +111,15 @@ const matchJobToProfile = async (resumeText, jobDescription) => {
         const response = await result.response;
         const textResponse = response.text();
 
-        const jsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        let jsonString = textResponse;
+        const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonString = jsonMatch[0];
+        } else {
+            console.error("No JSON found in Match Response:", textResponse);
+            throw new Error("Failed to parse AI match response structure");
+        }
+
         return JSON.parse(jsonString);
 
     } catch (error) {

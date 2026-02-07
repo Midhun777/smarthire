@@ -34,12 +34,21 @@ const Navbar = () => {
                         {user ? (
                             <>
                                 <div className="hidden md:flex items-center bg-gray-100/50 p-1 rounded-xl">
-                                    <NavLink to="/dashboard" active={isActive('/dashboard')} icon={<LayoutDashboard size={18} />}>
-                                        Dashboard
-                                    </NavLink>
-                                    <NavLink to="/applications" active={isActive('/applications')} icon={<ClipboardList size={18} />}>
-                                        Applications
-                                    </NavLink>
+                                    {(user.role === 'job_seeker' || user.role === 'user' || user.role === 'admin') && (
+                                        <>
+                                            <NavLink to="/dashboard" active={isActive('/dashboard')} icon={<LayoutDashboard size={18} />}>
+                                                Dashboard
+                                            </NavLink>
+                                            <NavLink to="/applications" active={isActive('/applications')} icon={<ClipboardList size={18} />}>
+                                                Applications
+                                            </NavLink>
+                                        </>
+                                    )}
+                                    {(user.role === 'job_provider' || user.role === 'admin') && (
+                                        <NavLink to="/provider-dashboard" active={isActive('/provider-dashboard')} icon={<BriefcaseBusiness size={18} />}>
+                                            Provider Portal
+                                        </NavLink>
+                                    )}
                                 </div>
 
                                 <Link
@@ -47,27 +56,48 @@ const Navbar = () => {
                                     className={`p-2 rounded-xl transition-all ${isActive('/profile') ? 'bg-job-primary/10 text-job-primary' : 'text-gray-500 hover:bg-gray-100'}`}
                                     title="Profile"
                                 >
-                                    <User size={24} />
+                                    {user?.profilePicture ? (
+                                        <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm ring-2 ring-job-primary/5">
+                                            <img
+                                                src={`http://localhost:5000/${user.profilePicture}`}
+                                                alt="Avatar"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <User size={24} />
+                                    )}
+                                </Link>
+
+                                <Link
+                                    to="/settings"
+                                    className={`p-2 rounded-xl transition-all ${isActive('/settings') ? 'bg-job-primary/10 text-job-primary' : 'text-gray-500 hover:bg-gray-100'}`}
+                                    title="Settings"
+                                >
+                                    <Shield size={24} />
                                 </Link>
 
                                 {user.role === 'admin' && (
                                     <Link
                                         to="/admin"
-                                        className={`p-2 rounded-xl transition-all ${isActive('/admin') ? 'bg-job-secondary/10 text-job-secondary' : 'text-gray-500 hover:bg-gray-100'}`}
+                                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all ${isActive('/admin') ? 'bg-job-secondary/10 text-job-secondary' : 'text-gray-500 hover:bg-gray-100'}`}
                                         title="Admin Dashboard"
                                     >
-                                        <Shield size={24} />
+                                        <Shield size={20} />
+                                        <span className="hidden lg:inline text-xs font-black uppercase tracking-widest">Admin Panel</span>
                                     </Link>
                                 )}
 
                                 {(user.role === 'job_provider' || user.role === 'admin') && (
-                                    <Link
-                                        to="/provider-dashboard"
-                                        className={`p-2 rounded-xl transition-all ${isActive('/provider-dashboard') ? 'bg-amber-100/50 text-amber-600' : 'text-gray-500 hover:bg-gray-100'}`}
-                                        title="Provider Portal"
-                                    >
-                                        <BriefcaseBusiness size={24} />
-                                    </Link>
+                                    <div className="md:hidden">
+                                        <Link
+                                            to="/provider-dashboard"
+                                            className={`p-2 rounded-xl transition-all ${isActive('/provider-dashboard') ? 'bg-amber-100/50 text-amber-600' : 'text-gray-500 hover:bg-gray-100'}`}
+                                            title="Provider Portal"
+                                        >
+                                            <BriefcaseBusiness size={24} />
+                                        </Link>
+                                    </div>
                                 )}
 
                                 <button
@@ -97,7 +127,7 @@ const Navbar = () => {
                     </div>
                 </div>
             </div>
-        </nav>
+        </nav >
     );
 };
 

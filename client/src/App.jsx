@@ -20,6 +20,7 @@ import AdminOverview from './pages/AdminOverview';
 import MyApplications from './pages/MyApplications';
 import AuditLogs from './pages/AuditLogs';
 import ProviderDashboard from './pages/ProviderDashboard';
+import Settings from './pages/Settings';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -84,6 +85,11 @@ function App() {
                 <ProviderRoute>
                   <ProviderDashboard />
                 </ProviderRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
               } />
 
               {/* Admin Routes */}

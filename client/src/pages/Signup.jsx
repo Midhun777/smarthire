@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, UserPlus } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import AuthContext from '../context/AuthContext';
@@ -12,6 +12,7 @@ const Signup = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('job_seeker'); // Default role
     const [loading, setLoading] = useState(false);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -20,10 +21,16 @@ const Signup = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data } = await api.post('/auth/register', { name, email, password });
+            const { data } = await api.post('/auth/register', { name, email, password, role });
             login(data);
             toast.success('Account created successfully!');
-            navigate('/dashboard');
+
+            // Role-based redirection
+            if (data.role === 'job_provider') {
+                navigate('/provider-dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Registration failed');
         } finally {
@@ -75,6 +82,36 @@ const Signup = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
+
+                        <div className="space-y-3">
+                            <label className="text-sm font-semibold text-gray-700 block">
+                                I am joining as a:
+                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('job_seeker')}
+                                    className={`py-3 px-4 rounded-xl border-2 transition-all duration-200 text-sm font-bold flex items-center justify-center gap-2 ${role === 'job_seeker'
+                                        ? 'border-job-secondary bg-job-secondary/10 text-job-secondary'
+                                        : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200'
+                                        }`}
+                                >
+                                    <User size={18} />
+                                    Job Seeker
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('job_provider')}
+                                    className={`py-3 px-4 rounded-xl border-2 transition-all duration-200 text-sm font-bold flex items-center justify-center gap-2 ${role === 'job_provider'
+                                        ? 'border-job-primary bg-job-primary/10 text-job-primary'
+                                        : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200'
+                                        }`}
+                                >
+                                    <LogIn size={18} />
+                                    Job Provider
+                                </button>
+                            </div>
+                        </div>
 
                         <Button
                             type="submit"

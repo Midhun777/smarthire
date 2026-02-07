@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     resumeText: String, // Store parsed text for AI matching
     resumeOriginalName: String,
     resumePath: String,
+    location: String,
+    phone: String,
+    bio: String,
+    profilePicture: String,
     isProfileComplete: {
         type: Boolean,
         default: false
