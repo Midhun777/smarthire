@@ -6,7 +6,7 @@ const Application = require('./models/Application');
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/job-ai')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/smarthire')
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log(err));
 

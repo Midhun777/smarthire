@@ -42,7 +42,9 @@ const AdminDashboard = () => {
         { name: 'Overview', path: '/admin', icon: LayoutDashboard },
         { name: 'Users', path: '/admin/users', icon: Users },
         { name: 'Jobs', path: '/admin/jobs', icon: Briefcase },
+        { name: 'Applications', path: '/admin/applications', icon: Activity },
         { name: 'Audit Logs', path: '/admin/audit', icon: ClipboardList },
+        { name: 'Settings', path: '/admin/settings', icon: Cpu },
     ];
 
     return (
@@ -57,8 +59,8 @@ const AdminDashboard = () => {
                                 <ShieldAlert size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-job-dark tracking-tighter">Command Unit</h2>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Administrative Layer</p>
+                                <h2 className="text-xl font-black text-job-dark tracking-tighter">Admin Panel</h2>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Management Suite</p>
                             </div>
                         </div>
                     </div>
@@ -87,7 +89,7 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="mt-8 p-8 border-t border-white/40 bg-job-neutral/30">
-                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">System Telemetry</h3>
+                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">System Status</h3>
                         <div className="space-y-4">
                             <TelemetryItem label="Node Status" value="Active" icon={Activity} color="text-green-500" />
                             <TelemetryItem label="CPU Load" value="2.4%" icon={Cpu} color="text-job-primary" />

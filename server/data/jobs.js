@@ -302,6 +302,50 @@ const jobs = [
         type: "On-site",
         salaryRange: "₹5,00,000 - ₹9,00,000",
         aiTags: ["Architecture", "Design", "Construction"]
+    },
+    {
+        title: "Junior Architect",
+        company: "Habitat Technology Group",
+        location: "Kochi, Kerala",
+        description: "Assisting senior architects in designing sustainable residential projects.",
+        requirements: ["B.Arch", "AutoCAD", "SketchUp", "Design Skills"],
+        experienceLevel: "Entry Level",
+        type: "Full-time",
+        salaryRange: "₹2,50,000 - ₹4,00,000",
+        aiTags: ["Architecture", "Junior", "Sustainable Design"]
+    },
+    {
+        title: "Interior Designer",
+        company: "Habitat Technology Group",
+        location: "Trivandrum, Kerala",
+        description: "Transforming interior spaces with eco-friendly and functional designs.",
+        requirements: ["Degree in Interior Design", "3ds Max", "Color Theory", "Material Knowledge"],
+        experienceLevel: "Mid Level",
+        type: "Full-time",
+        salaryRange: "₹4,00,000 - ₹7,00,000",
+        aiTags: ["Interior Design", "Creative", "Sustainable"]
+    },
+    {
+        title: "Site Supervisor",
+        company: "Habitat Technology Group",
+        location: "Kottayam, Kerala",
+        description: "Overseeing day-to-day construction activities and ensuring quality standards.",
+        requirements: ["Diploma in Civil Engineering", "Site Management", "Labor Management"],
+        experienceLevel: "Mid Level",
+        type: "On-site",
+        salaryRange: "₹3,00,000 - ₹5,00,000",
+        aiTags: ["Construction", "Site Supervision", "Civil"]
+    },
+    {
+        title: "Structural Engineer",
+        company: "Habitat Technology Group",
+        location: "Trivandrum, Kerala",
+        description: "Analyzing and designing structural systems for complex building projects.",
+        requirements: ["M.Tech in Structural Engineering", "STAAD.Pro", "RCC Design"],
+        experienceLevel: "Senior",
+        type: "Hybrid",
+        salaryRange: "₹8,00,000 - ₹12,00,000",
+        aiTags: ["Structural Engineering", "Civil", "Design"]
     }
 ];
 

@@ -69,7 +69,7 @@ const AdminJobs = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
             <div className="w-10 h-10 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Retrieving Mission Database</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Loading Job Database</p>
         </div>
     );
 
@@ -77,13 +77,13 @@ const AdminJobs = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">Mission Control</h2>
+                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">Job Management</h2>
                     <p className="text-gray-500 font-medium mt-2 italic">Management of all active and historical job postings.</p>
                 </div>
                 <div className="flex items-center space-x-4">
                     <div className="w-full md:w-64">
                         <Input
-                            placeholder="SEARCH MISSIONS..."
+                            placeholder="SEARCH JOBS..."
                             icon={Search}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -105,7 +105,7 @@ const AdminJobs = () => {
                     <table className="min-w-full divide-y divide-gray-100">
                         <thead>
                             <tr className="bg-job-neutral/30">
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Mission</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Job Posting</th>
                                 <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Parent Entity</th>
                                 <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Classification</th>
                                 <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Geographic Node</th>
@@ -166,7 +166,7 @@ const AdminJobs = () => {
                 {filteredJobs.length === 0 && (
                     <div className="py-20 text-center">
                         <Filter size={40} className="mx-auto text-gray-100 mb-4" />
-                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching missions discovered</p>
+                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching jobs found</p>
                     </div>
                 )}
             </Card>

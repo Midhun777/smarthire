@@ -63,8 +63,8 @@ const AdminOverview = () => {
 
     const cards = [
         { title: 'Registered Talent', value: stats.users, icon: Users, color: 'text-job-primary', bg: 'bg-job-primary/10', trend: '+12.5%' },
-        { title: 'Mission Postings', value: stats.jobs, icon: Briefcase, color: 'text-job-secondary', bg: 'bg-job-secondary/10', trend: '+5.2%' },
-        { title: 'Global Submissions', value: stats.applications, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-50', trend: '+18.1%' },
+        { title: 'Job Postings', value: stats.jobs, icon: Briefcase, color: 'text-job-secondary', bg: 'bg-job-secondary/10', trend: '+5.2%' },
+        { title: 'Total Applications', value: stats.applications, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-50', trend: '+18.1%' },
         { title: 'Conversion Rate', value: '64.2%', icon: Target, color: 'text-amber-600', bg: 'bg-amber-50', trend: '+2.4%' },
     ];
 
@@ -74,7 +74,7 @@ const AdminOverview = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-dark tracking-tighter">System Pulse</h1>
-                    <p className="text-gray-500 font-medium text-lg mt-2 italic">Real-time oversight of the Job AI ecosystem.</p>
+                    <p className="text-gray-500 font-medium text-lg mt-2 italic">Real-time oversight of the SmartHire ecosystem.</p>
                 </div>
                 <div className="flex items-center space-x-2 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2" />

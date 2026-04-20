@@ -55,7 +55,7 @@ const AuditLogs = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
             <div className="w-10 h-10 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Decrypting Security Archives</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Loading Logs</p>
         </div>
     );
 
@@ -64,8 +64,8 @@ const AuditLogs = () => {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">Security Ledger</h2>
-                    <p className="text-gray-500 font-medium mt-2 italic">Immutable record of all high-level system operations.</p>
+                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">Audit Logs</h2>
+                    <p className="text-gray-500 font-medium mt-2 italic">Detailed history of system operations and activities.</p>
                 </div>
                 <div className="w-full md:w-96">
                     <Input
@@ -83,11 +83,11 @@ const AuditLogs = () => {
                     <table className="min-w-full divide-y divide-gray-100">
                         <thead>
                             <tr className="bg-job-neutral/30">
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Chronology</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Acting Agent</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Operation</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timestamp</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">User / System</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Action</th>
                                 <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Target Entity</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Origin Node</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">IP Address</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 bg-white/50">
@@ -115,10 +115,10 @@ const AuditLogs = () => {
                                             </div>
                                             <div>
                                                 <div className="text-sm font-black text-job-dark tracking-tight">
-                                                    {log.user ? log.user.name : 'SYSTEM CORE'}
+                                                    {log.user ? log.user.name : 'System'}
                                                 </div>
                                                 <div className="text-[10px] font-bold text-gray-400 truncate max-w-[150px]">
-                                                    {log.user ? log.user.email : 'AUTO_PROC_V1'}
+                                                    {log.user ? log.user.email : 'Automated Process'}
                                                 </div>
                                             </div>
                                         </div>
@@ -155,7 +155,7 @@ const AuditLogs = () => {
                 {filteredLogs.length === 0 && (
                     <div className="py-20 text-center">
                         <Shield size={40} className="mx-auto text-gray-100 mb-4" />
-                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No anomalies detected</p>
+                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No logs found</p>
                     </div>
                 )}
             </Card>
@@ -167,7 +167,7 @@ const AuditLogs = () => {
                     </div>
                     <div>
                         <h4 className="text-sm font-black text-job-dark uppercase tracking-tight">Log Retention Policy</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Data archived every 30 terrestrial days</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Data archived every 30 days</p>
                     </div>
                 </div>
                 <Button variant="ghost" className="h-12 border-2 border-gray-100 hover:border-job-primary/20 hover:bg-white text-[10px] font-black uppercase tracking-widest">

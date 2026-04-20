@@ -10,6 +10,8 @@ import {
     Calendar,
     MoreVertical,
     Search,
+    CheckCircle,
+    XCircle,
     UserCircle
 } from 'lucide-react';
 import Card from '../components/ui/Card';
@@ -41,10 +43,20 @@ const AdminUsers = () => {
         if (!window.confirm('Are you sure you want to delete this user? All associated data will be purged.')) return;
         try {
             await api.delete(`/users/${id}`);
-            toast.success('User purged from system');
+            toast.success('User deleted from system');
             fetchUsers();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error deleting user');
+        }
+    };
+
+    const toggleVerify = async (user) => {
+        try {
+            await api.put(`/admin/users/${user._id}/verify`);
+            toast.success(`${user.name} verification status updated`);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Error updating verification');
         }
     };
 
@@ -67,7 +79,7 @@ const AdminUsers = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
             <div className="w-10 h-10 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Syncing Personnel Database</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Loading Users</p>
         </div>
     );
 
@@ -75,12 +87,12 @@ const AdminUsers = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">Personnel Directory</h2>
-                    <p className="text-gray-500 font-medium mt-2 italic">Authorized access to the user registry.</p>
+                    <h2 className="text-3xl font-black text-job-dark tracking-tighter">User Management</h2>
+                    <p className="text-gray-500 font-medium mt-2 italic">Manage all users and their access levels.</p>
                 </div>
                 <div className="w-full md:w-80">
                     <Input
-                        placeholder="SEARCH IDENTITIES..."
+                        placeholder="SEARCH USERS..."
                         icon={Search}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,11 +106,12 @@ const AdminUsers = () => {
                     <table className="min-w-full divide-y divide-gray-100">
                         <thead>
                             <tr className="bg-job-neutral/30">
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Identified Entity</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Access Node</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Permission Level</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Registry Date</th>
-                                <th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Operations</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Name</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Role</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Verification</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Joined Date</th>
+                                <th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 bg-white/50">
@@ -124,6 +137,11 @@ const AdminUsers = () => {
                                         </Badge>
                                     </td>
                                     <td className="px-8 py-6 whitespace-nowrap">
+                                        <Badge variant={user.isVerified ? 'success' : 'gray'} icon={user.isVerified ? CheckCircle : XCircle} className="px-3 py-1 font-black text-[10px] tracking-widest uppercase border-0">
+                                            {user.isVerified ? 'Verified' : 'Pending'}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-8 py-6 whitespace-nowrap">
                                         <div className="flex items-center text-gray-400 text-xs font-bold">
                                             <Calendar size={14} className="mr-2 opacity-50" />
                                             {new Date(user.createdAt).toLocaleDateString()}
@@ -137,7 +155,15 @@ const AdminUsers = () => {
                                                 onClick={() => toggleRole(user)}
                                                 icon={user.role === 'admin' ? ShieldAlert : ShieldCheck}
                                             >
-                                                Shift Role
+                                                Change Role
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                className={`h-10 px-4 text-[10px] font-black uppercase tracking-widest border-2 transition-all ${user.isVerified ? 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100' : 'border-gray-100 hover:border-job-primary/20 hover:bg-job-primary/5 text-job-primary'}`}
+                                                onClick={() => toggleVerify(user)}
+                                                icon={user.isVerified ? XCircle : CheckCircle}
+                                            >
+                                                {user.isVerified ? 'Revoke' : 'Verify'}
                                             </Button>
                                             <Button
                                                 variant="ghost"
@@ -156,7 +182,7 @@ const AdminUsers = () => {
                 {filteredUsers.length === 0 && (
                     <div className="py-20 text-center">
                         <Users size={40} className="mx-auto text-gray-100 mb-4" />
-                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching identities found</p>
+                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching users found</p>
                     </div>
                 )}
             </Card>

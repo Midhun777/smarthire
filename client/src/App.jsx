@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import SystemBanner from './components/SystemBanner';
 // Pages Placeholder
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -10,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import JobDetails from './pages/JobDetails';
 import CompleteProfile from './pages/CompleteProfile';
+import Discovery from './pages/Discovery';
 // Protected Route Component (Inline for now)
 import { useContext } from 'react';
 import AuthContext from './context/AuthContext';
@@ -18,9 +20,14 @@ import AdminUsers from './pages/AdminUsers';
 import AdminJobs from './pages/AdminJobs';
 import AdminOverview from './pages/AdminOverview';
 import MyApplications from './pages/MyApplications';
+import KanbanTracker from './pages/KanbanTracker';
 import AuditLogs from './pages/AuditLogs';
+import AdminApplications from './pages/AdminApplications';
+import AdminSettings from './pages/AdminSettings';
 import ProviderDashboard from './pages/ProviderDashboard';
 import Settings from './pages/Settings';
+import ChatInbox from './pages/ChatInbox';
+import { ChatProvider } from './context/ChatContext';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -45,8 +52,10 @@ const ProviderRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
+      <ChatProvider>
       <Router>
         <div className="min-h-screen bg-gray-50 flex flex-col">
+          <SystemBanner />
           <Navbar />
           <main className="flex-grow container mx-auto px-4 py-8">
             <Routes>
@@ -76,9 +85,14 @@ function App() {
                   <CompleteProfile />
                 </ProtectedRoute>
               } />
+              <Route path="/discovery" element={
+                <ProtectedRoute>
+                  <Discovery />
+                </ProtectedRoute>
+              } />
               <Route path="/applications" element={
                 <ProtectedRoute>
-                  <MyApplications />
+                  <KanbanTracker />
                 </ProtectedRoute>
               } />
               <Route path="/provider-dashboard" element={
@@ -91,6 +105,11 @@ function App() {
                   <Settings />
                 </ProtectedRoute>
               } />
+              <Route path="/chat" element={
+                <ProtectedRoute>
+                  <ChatInbox />
+                </ProtectedRoute>
+              } />
 
               {/* Admin Routes */}
               <Route path="/admin" element={
@@ -101,13 +120,16 @@ function App() {
                 <Route index element={<AdminOverview />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="jobs" element={<AdminJobs />} />
+                <Route path="applications" element={<AdminApplications />} />
                 <Route path="audit" element={<AuditLogs />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
             </Routes>
           </main>
           <Toaster position="top-right" />
         </div>
       </Router>
+      </ChatProvider>
     </AuthProvider>
   );
 }

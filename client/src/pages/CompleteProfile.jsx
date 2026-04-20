@@ -16,6 +16,7 @@ const CompleteProfile = () => {
     const [profileData, setProfileData] = useState({
         skills: [],
         experience: [],
+        education: [],
         resumePath: '',
         bio: ''
     });
@@ -32,16 +33,13 @@ const CompleteProfile = () => {
 
         setUploading(true);
         try {
-            const { data } = await api.post('/users/resume', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const { data } = await api.post('/users/resume', formData);
             toast.success(data.message || 'Resume parsed successfully!');
             setProfileData({
                 ...profileData,
                 skills: data.skills || [],
                 experience: data.experience || [],
+                education: data.education || [],
                 resumePath: data.resumePath
             });
             setManualMode(false);
@@ -295,6 +293,34 @@ const CompleteProfile = () => {
                                                     <p className="text-sm text-gray-400 font-bold italic">No work history blocks identified.</p>
                                                 </div>
                                             )}
+
+                                    {!manualMode && (
+                                        <div>
+                                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center">
+                                                <Badge variant="accent" className="mr-3 h-5 w-5 p-0 flex items-center justify-center rounded-lg">3</Badge>
+                                                Education
+                                            </h3>
+                                            {profileData.education.length > 0 ? (
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {profileData.education.slice(0, 3).map((edu, i) => (
+                                                        <div key={i} className="flex items-center p-5 bg-white border border-white/60 shadow-sm rounded-2xl group hover:border-job-accent/20 transition-all">
+                                                            <div className="w-12 h-12 bg-job-accent/10 rounded-xl flex items-center justify-center text-job-accent mr-4 group-hover:scale-110 transition-transform">
+                                                                <ListChecks size={20} />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <p className="font-black text-job-dark leading-none mb-1">{edu.degree}</p>
+                                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{edu.school} {edu.year ? `• ${edu.year}` : ''}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 text-center">
+                                                    <p className="text-sm text-gray-400 font-bold italic">No education blocks identified.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                         </div>
                                     )}
                                 </div>

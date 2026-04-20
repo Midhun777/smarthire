@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const User = require('../models/User');
+const JobMatch = require('../models/JobMatch');
 const { protect, admin } = require('../middleware/authMiddleware');
 const { extractSkillsFromResume } = require('../services/aiService');
 const { logAction } = require('../services/auditService');
@@ -27,8 +28,10 @@ router.post('/resume', protect, upload.single('resume'), async (req, res) => {
         const aiData = await extractSkillsFromResume(filePath, mimeType);
 
         if (aiData.error) {
-            return res.status(422).json({
+            const isTransient = aiData.error.includes("503") || aiData.error.includes("Service Unavailable") || aiData.error.includes("overloaded");
+            return res.status(isTransient ? 503 : 422).json({
                 message: aiData.error,
+                isTransient,
                 skills: [],
                 experience: []
             });
@@ -42,6 +45,10 @@ router.post('/resume', protect, upload.single('resume'), async (req, res) => {
             user.resumeText = aiData.rawText; // Save raw text
             user.skills = aiData.skills || [];
             user.experience = aiData.experience || [];
+            user.education = aiData.education || [];
+            // Clear match cache and persisted application scores when resume changes
+            await JobMatch.deleteMany({ userId });
+            await require('../models/Application').updateMany({ user: userId }, { $set: { aiMatch: null } });
             await user.save();
 
             await logAction(userId, 'Resume Uploaded', 'User', userId, `File: ${req.file.originalname}`, req);
@@ -51,7 +58,8 @@ router.post('/resume', protect, upload.single('resume'), async (req, res) => {
                 resumePath: user.resumePath,
                 resumeOriginalName: user.resumeOriginalName,
                 skills: user.skills,
-                experience: user.experience
+                experience: user.experience,
+                education: user.education
             });
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -242,6 +250,8 @@ router.put('/profile/skills', protect, async (req, res) => {
         const user = await User.findById(req.user.id);
         if (user) {
             user.skills = req.body.skills || user.skills;
+            // Clear match cache when skills are manually updated
+            await JobMatch.deleteMany({ userId: req.user.id });
             await user.save();
             await logAction(req.user.id, 'Skills Updated', 'User', user._id, `Skills: ${user.skills.join(', ')}`, req);
             res.json(user.skills);
@@ -261,6 +271,8 @@ router.put('/profile/experience', protect, async (req, res) => {
         const user = await User.findById(req.user.id);
         if (user) {
             user.experience = req.body.experience || user.experience;
+            // Clear match cache when experience is manually updated
+            await JobMatch.deleteMany({ userId: req.user.id });
             await user.save();
             await logAction(req.user.id, 'Experience Updated', 'User', user._id, 'Work history modified', req);
             res.json(user.experience);
@@ -272,4 +284,62 @@ router.put('/profile/experience', protect, async (req, res) => {
     }
 });
 
+// @desc    Update Profile Education (Full Array)
+// @route   PUT /api/users/profile/education
+// @access  Private
+router.put('/profile/education', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (user) {
+            user.education = req.body.education || user.education;
+            await user.save();
+            await logAction(req.user.id, 'Education Updated', 'User', user._id, 'Educational background modified', req);
+            res.json(user.education);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Toggle Save/Unsave a Job (Bookmark)
+// @route   POST /api/users/saved-jobs/:jobId
+// @access  Private
+router.post('/saved-jobs/:jobId', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const jobId = req.params.jobId;
+        const savedIndex = user.savedJobs.findIndex(id => id.toString() === jobId);
+
+        if (savedIndex > -1) {
+            user.savedJobs.splice(savedIndex, 1);
+            await user.save();
+            return res.json({ saved: false, savedJobs: user.savedJobs });
+        } else {
+            user.savedJobs.push(jobId);
+            await user.save();
+            return res.json({ saved: true, savedJobs: user.savedJobs });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get all saved jobs (populated)
+// @route   GET /api/users/saved-jobs
+// @access  Private
+router.get('/saved-jobs', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).populate('savedJobs');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user.savedJobs || []);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
+

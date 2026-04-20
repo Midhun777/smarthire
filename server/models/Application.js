@@ -19,6 +19,15 @@ const applicationSchema = new mongoose.Schema({
     appliedAt: {
         type: Date,
         default: Date.now
+    },
+    aiMatch: {
+        matchPercentage: { type: Number, default: 0 },
+        reason: { type: String, default: '' },
+        calculatedAt: { type: Date }
+    },
+    userNote: {
+        type: String,
+        default: ''
     }
 }, { timestamps: true });
 

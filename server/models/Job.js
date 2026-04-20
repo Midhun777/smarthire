@@ -39,6 +39,19 @@ const jobSchema = new mongoose.Schema({
     postedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    shortlistCriteria: {
+        minAiScore: { type: Number, default: 0 },
+        autoShortlist: { type: Boolean, default: false }
+    },
+    status: {
+        type: String,
+        enum: ['active', 'closed'],
+        default: 'active'
+    },
+    views: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

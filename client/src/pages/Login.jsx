@@ -49,7 +49,7 @@ const Login = () => {
                             <LogIn className="text-job-primary w-8 h-8" />
                         </div>
                         <h2 className="text-3xl font-extrabold text-job-dark tracking-tight">Login</h2>
-                        <p className="text-gray-500 mt-2 font-medium">Welcome back to Job AI</p>
+                        <p className="text-gray-500 mt-2 font-medium">Welcome back to SmartHire</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">

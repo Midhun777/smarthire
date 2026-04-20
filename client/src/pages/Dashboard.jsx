@@ -3,21 +3,22 @@ import api from '../services/api';
 import AuthContext from '../context/AuthContext';
 import JobCard from '../components/JobCard';
 import StatCard from '../components/StatCard';
-import { LayoutDashboard, Briefcase, TrendingUp, Sparkles, ChevronRight, Users as UsersIcon } from 'lucide-react';
+import { LayoutDashboard, Briefcase, TrendingUp, Sparkles, ChevronRight, Users as UsersIcon, MapPin, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({ users: 0, jobs: 0, applications: 0 });
-    const [recommendedJobs, setRecommendedJobs] = useState([]);
     const [allJobs, setAllJobs] = useState([]);
-    const [filteredJobs, setFilteredJobs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('All');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [companyFilter, setCompanyFilter] = useState('');
     const [loading, setLoading] = useState(true);
-    const { user } = useContext(AuthContext);
+    const { user, updateUser } = useContext(AuthContext);
     const navigate = useNavigate();
+    const [freshUser, setFreshUser] = useState(user);
 
     useEffect(() => {
         // Redirect if user is a provider
@@ -42,23 +43,19 @@ const Dashboard = () => {
         fetchStats();
         const fetchData = async () => {
             try {
+                // Fetch fresh user to ensure we have the latest skills and profile status
+                let currentUser = user;
+                try {
+                    const userRes = await api.get('/users/profile');
+                    if (updateUser) updateUser(userRes.data);
+                    setFreshUser(userRes.data);
+                    currentUser = userRes.data;
+                } catch (err) {
+                    console.error("Failed to fetch fresh user", err);
+                }
+
                 const allJobsRes = await api.get('/jobs');
                 setAllJobs(allJobsRes.data);
-                setFilteredJobs(allJobsRes.data);
-
-                if (user?.skills && user.skills.length > 0) {
-                    try {
-                        const recommendRes = await api.post('/jobs/recommend');
-                        const normalized = recommendRes.data.map(item => ({
-                            ...item.job,
-                            matchPercentage: item.matchPercentage,
-                            reason: item.reason
-                        }));
-                        setRecommendedJobs(normalized);
-                    } catch (err) {
-                        console.log("Recommend failed", err);
-                    }
-                }
             } catch (error) {
                 console.error(error);
             } finally {
@@ -69,24 +66,31 @@ const Dashboard = () => {
         fetchData();
     }, [user]);
 
-    // Handle Search and Filter
-    useEffect(() => {
-        let result = allJobs;
+    // Derive filtered jobs during render to avoid the double-render flicker
+    let filteredJobs = allJobs;
 
-        if (searchTerm) {
-            result = result.filter(job =>
-                job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                job.location.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        if (filterType !== 'All') {
-            result = result.filter(job => job.type === filterType);
-        }
-
-        setFilteredJobs(result);
-    }, [searchTerm, filterType, allJobs]);
+    if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filteredJobs = filteredJobs.filter(job =>
+            job.title.toLowerCase().includes(term) ||
+            job.company.toLowerCase().includes(term) ||
+            job.location.toLowerCase().includes(term) ||
+            (job.requirements && job.requirements.some(req => req.toLowerCase().includes(term)))
+        );
+    }
+    if (locationFilter) {
+        filteredJobs = filteredJobs.filter(job =>
+            job.location.toLowerCase().includes(locationFilter.toLowerCase())
+        );
+    }
+    if (companyFilter) {
+        filteredJobs = filteredJobs.filter(job =>
+            job.company.toLowerCase().includes(companyFilter.toLowerCase())
+        );
+    }
+    if (filterType !== 'All') {
+        filteredJobs = filteredJobs.filter(job => job.type === filterType);
+    }
 
     if (loading) return (
         // ... (loading UI remains the same)
@@ -132,14 +136,16 @@ const Dashboard = () => {
             </section>
 
             {/* Stats Dashboard */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard icon={TrendingUp} label="Total Jobs" value={stats.jobs} variant="primary" />
-                <StatCard icon={UsersIcon} label="Total Users" value={stats.users} variant="secondary" />
-                <StatCard icon={Briefcase} label="Applications" value={stats.applications || 0} variant="accent" />
-            </section>
+            {user?.role === 'admin' && (
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCard icon={TrendingUp} label="Total Jobs" value={stats.jobs} variant="primary" />
+                    <StatCard icon={UsersIcon} label="Total Users" value={stats.users} variant="secondary" />
+                    <StatCard icon={Briefcase} label="Applications" value={stats.applications || 0} variant="accent" />
+                </section>
+            )}
 
             {/* Onboarding Banner */}
-            {user && !user.isProfileComplete && (
+            {freshUser && !freshUser.isProfileComplete && (!freshUser.skills || freshUser.skills.length === 0) && (
                 <Card className="bg-job-primary/5 border-job-primary/20 p-8 md:p-12 text-center md:text-left relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-job-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -158,31 +164,6 @@ const Dashboard = () => {
                 </Card>
             )}
 
-            {/* Recommendations */}
-            {recommendedJobs.length > 0 && (
-                <section>
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center border border-amber-200 shadow-sm">
-                                <Sparkles className="text-amber-600" />
-                            </div>
-                            <h2 className="text-3xl font-black text-job-dark tracking-tight">Handpicked for You</h2>
-                        </div>
-                    </div>
-                    <div className="flex space-x-6 overflow-x-auto pb-8 hide-scrollbar snap-x">
-                        {recommendedJobs.map((job) => (
-                            <div key={`rec-${job._id}`} className="min-w-[320px] md:min-w-[400px] snap-center">
-                                <JobCard
-                                    job={job}
-                                    matchPercentage={job.matchPercentage}
-                                    reason={job.reason}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-
             {/* Main Feed */}
             <section>
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
@@ -191,35 +172,77 @@ const Dashboard = () => {
                             <LayoutDashboard className="text-job-primary" />
                         </div>
                         <h2 className="text-3xl font-black text-job-dark tracking-tight">
-                            {recommendedJobs.length > 0 ? 'Explore More Jobs' : 'Latest Jobs'}
+                            Explore Jobs
                         </h2>
                     </div>
 
                     {/* Search and Filter UI */}
-                    <div className="flex flex-col sm:flex-row gap-4 flex-grow max-w-2xl">
-                        <div className="relative flex-grow">
-                            <input
-                                type="text"
-                                placeholder="Search by title, company, or location..."
-                                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-job-primary/20 focus:border-job-primary transition-all font-medium text-job-dark"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <div className="flex flex-col gap-4 flex-grow max-w-4xl">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Search by title or skills (e.g. React)..."
+                                    className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-job-primary/20 focus:border-job-primary transition-all font-medium text-job-dark shadow-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            </div>
+
+                            <div className="flex bg-gray-100 p-1 rounded-2xl">
+                                {['All', 'Full-time', 'Remote', 'Contract'].map((type) => (
+                                    <button
+                                        key={type}
+                                        onClick={() => setFilterType(type)}
+                                        className={`px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterType === type
+                                            ? 'bg-white text-job-primary shadow-sm'
+                                            : 'text-gray-400 hover:text-job-dark'
+                                            }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex bg-gray-100 p-1 rounded-2xl">
-                            {['All', 'Full-time', 'Remote', 'Contract'].map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setFilterType(type)}
-                                    className={`px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filterType === type
-                                        ? 'bg-white text-job-primary shadow-sm'
-                                        : 'text-gray-400 hover:text-job-dark'
-                                        }`}
-                                >
-                                    {type}
-                                </button>
-                            ))}
+
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Filter by Location..."
+                                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-100 rounded-xl focus:border-job-primary transition-all text-sm font-medium"
+                                    value={locationFilter}
+                                    onChange={(e) => setLocationFilter(e.target.value)}
+                                />
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                                {locationFilter && (
+                                    <button
+                                        onClick={() => setLocationFilter('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Filter by Company..."
+                                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-100 rounded-xl focus:border-job-primary transition-all text-sm font-medium"
+                                    value={companyFilter}
+                                    onChange={(e) => setCompanyFilter(e.target.value)}
+                                />
+                                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                                {companyFilter && (
+                                    <button
+                                        onClick={() => setCompanyFilter('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -234,11 +257,19 @@ const Dashboard = () => {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredJobs
-                            .filter(job => !recommendedJobs.some(rec => rec._id === job._id))
-                            .map((job) => (
+                        {(() => {
+                            if (filteredJobs.length === 0) {
+                                return (
+                                    <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-gray-500">
+                                        No jobs available right now.
+                                    </div>
+                                );
+                            }
+
+                            return filteredJobs.map((job) => (
                                 <JobCard key={job._id} job={job} />
-                            ))}
+                            ));
+                        })()}
                     </div>
                 )}
             </section>

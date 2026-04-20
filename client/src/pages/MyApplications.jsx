@@ -62,7 +62,7 @@ const MyApplications = () => {
                         <span className="text-xs font-black uppercase tracking-widest">Active Pipeline</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-job-dark tracking-tighter">Application Ledger</h1>
-                    <p className="text-gray-500 font-medium text-lg mt-2">Historical and real-time tracking of your professional submissions.</p>
+                    <p className="text-gray-500 font-medium text-lg mt-2">Historical and real-time tracking of your job applications.</p>
                 </div>
                 <Link to="/dashboard">
                     <Button variant="ghost" className="bg-white border-2 border-job-primary/10 hover:border-job-primary shadow-xl shadow-job-primary/5" icon={LayoutDashboard}>

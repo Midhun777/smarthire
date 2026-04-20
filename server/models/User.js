@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
         type: [Object],
         default: []
     },
+    education: {
+        type: [Object],
+        default: []
+    },
     resumeText: String, // Store parsed text for AI matching
     resumeOriginalName: String,
     resumePath: String,
@@ -34,7 +38,15 @@ const userSchema = new mongoose.Schema({
     phone: String,
     bio: String,
     profilePicture: String,
+    savedJobs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
+    }],
     isProfileComplete: {
+        type: Boolean,
+        default: false
+    },
+    isVerified: {
         type: Boolean,
         default: false
     }

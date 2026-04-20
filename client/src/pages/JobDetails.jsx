@@ -10,12 +10,15 @@ import {
     IndianRupee,
     ChevronLeft,
     CheckCircle,
+    XCircle,
     Sparkles,
     AlertCircle,
     Calendar,
     Target,
     Zap,
-    ArrowRight
+    ArrowRight,
+    Brain,
+    Bookmark
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -30,6 +33,28 @@ const JobDetails = () => {
     const [isApplied, setIsApplied] = useState(false);
     const [matchData, setMatchData] = useState(null);
     const [matching, setMatching] = useState(false);
+    const [loadingStep, setLoadingStep] = useState(0);
+    const [isSaved, setIsSaved] = useState(false);
+    const [bookmarking, setBookmarking] = useState(false);
+
+    const isJobSeeker = user && (user.role === 'job_seeker' || user.role === 'user');
+
+    const loadingSteps = [
+        "Fetching job description...",
+        "Analyzing skill requirements...",
+        "Calculating AI resonance score...",
+        "Synthesizing match data...",
+        "Finalizing profile fit..."
+    ];
+
+    useEffect(() => {
+        if (loading) {
+            const interval = setInterval(() => {
+                setLoadingStep(prev => (prev + 1) % loadingSteps.length);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [loading]);
 
     useEffect(() => {
         const fetchJobAndStatus = async () => {
@@ -44,14 +69,21 @@ const JobDetails = () => {
                 setIsApplied(applied);
 
                 if (user) {
-                    setMatching(true);
                     try {
                         const matchRes = await api.get(`/jobs/${id}/match`);
-                        setMatchData(matchRes.data);
+                        if (matchRes.data && !matchRes.data.notCalculated) {
+                            setMatchData(matchRes.data);
+                        }
                     } catch (err) {
-                        console.log("Match check skipped or failed:", err.response?.data?.message);
-                    } finally {
-                        setMatching(false);
+                        console.error('Failed to fetch cached match data:', err);
+                    }
+                    // Check if job is saved
+                    try {
+                        const savedRes = await api.get('/users/saved-jobs');
+                        const savedIds = savedRes.data.map(j => j._id || j);
+                        setIsSaved(savedIds.includes(id));
+                    } catch (err) {
+                        console.error('Failed to fetch saved jobs:', err);
                     }
                 }
             } catch (error) {
@@ -63,6 +95,20 @@ const JobDetails = () => {
         };
         fetchJobAndStatus();
     }, [id, user]);
+
+    const handleCheckMatch = async () => {
+        if (!user) return;
+        setMatching(true);
+        try {
+            const matchRes = await api.get(`/jobs/${id}/match?refresh=true`);
+            setMatchData(matchRes.data);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Match analysis failed");
+        } finally {
+            setMatching(false);
+        }
+    };
 
     const handleApply = async () => {
         setApplying(true);
@@ -78,10 +124,40 @@ const JobDetails = () => {
         }
     };
 
+    const handleBookmark = async () => {
+        if (!user || !isJobSeeker) return;
+        setBookmarking(true);
+        try {
+            const { data } = await api.post(`/users/saved-jobs/${id}`);
+            setIsSaved(data.saved);
+            toast.success(data.saved ? '📌 Job saved to your board!' : 'Job removed from board');
+        } catch (err) {
+            toast.error('Failed to update bookmark');
+        } finally {
+            setBookmarking(false);
+        }
+    };
+
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-            <div className="w-12 h-12 border-4 border-job-primary/20 border-t-job-primary rounded-full animate-spin" />
-            <p className="text-gray-500 font-bold animate-pulse tracking-widest uppercase text-xs">Loading Details</p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 text-center px-4">
+            <div className="relative">
+                <div className="w-24 h-24 border-8 border-job-primary/10 border-t-job-primary rounded-full animate-spin" />
+                <Brain className="absolute inset-0 m-auto text-job-primary animate-pulse" size={32} />
+            </div>
+            <div className="space-y-4 max-w-xs mx-auto">
+                <h2 className="text-xl font-black text-job-dark tracking-tight uppercase">Analyzing Role Fit</h2>
+                <div className="space-y-2">
+                    <p className="text-job-primary font-bold animate-pulse tracking-widest uppercase text-[10px] min-h-[1rem]">
+                        {loadingSteps[loadingStep]}
+                    </p>
+                    <div className="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
+                        <div
+                            className="bg-job-primary h-full transition-all duration-1000 ease-in-out"
+                            style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
     if (!job) return <div className="text-center py-20 font-black text-gray-400">Job not found</div>;
@@ -126,8 +202,24 @@ const JobDetails = () => {
                                             {job.location}
                                         </div>
                                     </div>
+                                    </div>
+                                    {/* Bookmark button */}
+                                    {isJobSeeker && (
+                                        <button
+                                            onClick={handleBookmark}
+                                            disabled={bookmarking}
+                                            title={isSaved ? 'Remove bookmark' : 'Save this job'}
+                                            className={`shrink-0 mt-2 flex items-center space-x-2 px-5 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest transition-all ${
+                                                isSaved
+                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                                                : 'bg-white border-gray-100 text-gray-400 hover:border-indigo-200 hover:text-indigo-500'
+                                            } ${bookmarking ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                        >
+                                            <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                                            <span>{isSaved ? 'Saved' : 'Save Job'}</span>
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
 
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-job-neutral rounded-3xl border border-white">
                                 <DetailItem label="Salary" value={job.salaryRange || 'Not disclosed'} icon={IndianRupee} color="text-green-600" />
@@ -190,6 +282,16 @@ const JobDetails = () => {
                                         Applied on {new Date().toLocaleDateString()}
                                     </p>
                                 </div>
+                            ) : job.status === 'closed' ? (
+                                <div className="space-y-4">
+                                    <div className="bg-gray-100 h-16 rounded-2xl flex items-center justify-center text-gray-400 border border-gray-200">
+                                        <XCircle size={24} className="mr-3" />
+                                        <span className="font-black uppercase tracking-widest text-sm">Job Closed</span>
+                                    </div>
+                                    <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-relaxed">
+                                        This position is no longer accepting applications.
+                                    </p>
+                                </div>
                             ) : (
                                 <Button
                                     onClick={handleApply}
@@ -226,7 +328,7 @@ const JobDetails = () => {
                                     <div className="space-y-8 relative z-10">
                                         <div className="flex items-center justify-between">
                                             <div className="w-20 h-20 relative">
-                                                <svg className="w-full h-full transform -rotate-90">
+                                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
                                                     <circle cx="40" cy="40" r="36" stroke="#fef3c7" strokeWidth="8" fill="transparent" />
                                                     <circle
                                                         cx="40" cy="40" r="36" stroke="#f59e0b" strokeWidth="8" fill="transparent"
@@ -242,9 +344,19 @@ const JobDetails = () => {
                                             </div>
                                             <div className="flex-grow ml-6">
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 leading-tight mb-2">Match Confidence</p>
-                                                <Badge variant="success" className="bg-amber-500 text-white border-0 shadow-lg shadow-amber-200">
-                                                    High Match Potential
-                                                </Badge>
+                                                {matchData.matchPercentage >= 80 ? (
+                                                    <Badge variant="success" className="shadow-sm">
+                                                        High Match Potential
+                                                    </Badge>
+                                                ) : matchData.matchPercentage >= 50 ? (
+                                                    <Badge variant="warning" className="shadow-sm">
+                                                        Moderate Match Potential
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="danger" className="shadow-sm">
+                                                        Low Match Potential
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
 
@@ -264,9 +376,38 @@ const JobDetails = () => {
                                                 </div>
                                             </div>
                                         )}
+                                        
+                                        <div className="pt-4 mt-2">
+                                            <Button 
+                                                variant="ghost" 
+                                                scope="sm"
+                                                className="w-full text-[10px] font-bold text-amber-600/60 hover:text-amber-600 hover:bg-amber-100/50 uppercase tracking-widest"
+                                                onClick={handleCheckMatch}
+                                            >
+                                                Re-evaluate Profile Match
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (user?.resumeText || (user?.skills && user.skills.length > 0)) ? (
+                                    <div className="text-center py-6">
+                                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                                            <Brain className="text-amber-500" size={32} />
+                                        </div>
+                                        <h4 className="text-sm font-black text-job-dark mb-2">Check Your Fit</h4>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-8 leading-relaxed">
+                                            Run AI analysis to see how your skills <br /> align with this specific role.
+                                        </p>
+                                        <Button 
+                                            variant="secondary" 
+                                            className="w-full bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg shadow-amber-200"
+                                            onClick={handleCheckMatch}
+                                            icon={Sparkles}
+                                        >
+                                            Check Compatibility
+                                        </Button>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-6 group cursor-pointer" onClick={() => window.location.href = '/profile'}>
+                                    <div className="text-center py-6 group cursor-pointer" onClick={() => navigate('/profile')}>
                                         <AlertCircle className="mx-auto w-10 h-10 text-amber-200 mb-4 group-hover:scale-110 transition-transform" />
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-loose">
                                             Resume Required <br />
@@ -289,7 +430,7 @@ const DetailItem = ({ label, value, icon: Icon, color }) => (
             <Icon size={14} className={`${color}`} />
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
         </div>
-        <p className="text-sm font-black text-dark truncate">{value}</p>
+        <p className="text-sm font-black text-dark break-words">{value}</p>
     </div>
 );
 

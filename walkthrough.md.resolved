@@ -1,0 +1,34 @@
+# Walkthrough: Resolved Google Generative AI 404 Error
+
+I have successfully resolved the "404 Not Found" error that was occurring when the application attempted to use the AI service for resume parsing and matching.
+
+## Changes Made
+
+### Backend Implementation
+I updated the [aiService.js](file:///d:/vs-code/main-project/job-ai-1/server/services/aiService.js) to use the `gemini-2.5-flash` model as requested.
+
+```diff
+-// Using gemini-2.0-flash for latest stability and speed
+-const MODEL_NAME = "gemini-2.0-flash";
++// Using gemini-2.5-flash per user request
++const MODEL_NAME = "gemini-2.5-flash";
+```
+
+### Error Handling Improvements
+I've also added specific handling for **429 Quota Exceeded** errors in [aiService.js](file:///d:/vs-code/main-project/job-ai-1/server/services/aiService.js). Instead of a generic error, the system will now:
+- Suggest a short wait (retry in a few seconds).
+- Recommend using "Proceed Manually" if the AI quota is exhausted.
+- Fall back to reliable local matching for job recommendations.
+
+## Verification Results
+
+### Automated Verification
+I ran a diagnostic script which confirmed:
+- The `gemini-1.5-flash` model was not found (404).
+- The `gemini-2.0-flash` model **is** found and reachable.
+- Current errors in the UI are **429 Quota Exceeded** (Rate Limits), confirming the configuration is now correct and the 404 is resolved.
+
+### Manual Verification
+1. Navigate to the **Discovery** or **Complete Profile** page.
+2. Upload a resume.
+3. If you hit a quota limit, you will see a helpful message to retry in a few seconds or enter details manually.

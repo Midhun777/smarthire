@@ -1,10 +1,13 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LayoutDashboard, ClipboardList, User, LogOut, Shield, BriefcaseBusiness } from 'lucide-react';
+import { useChat } from '../context/ChatContext';
+import { LayoutDashboard, ClipboardList, User, LogOut, Shield, BriefcaseBusiness, Sparkles, Kanban, MessageSquare } from 'lucide-react';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
+    const { unreadCount } = useChat();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -25,7 +28,7 @@ const Navbar = () => {
                                 <BriefcaseBusiness className="text-white w-6 h-6" />
                             </div>
                             <span className="font-extrabold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-job-primary to-job-secondary">
-                                JobAI
+                                SmartHire
                             </span>
                         </Link>
                     </div>
@@ -39,8 +42,11 @@ const Navbar = () => {
                                             <NavLink to="/dashboard" active={isActive('/dashboard')} icon={<LayoutDashboard size={18} />}>
                                                 Dashboard
                                             </NavLink>
-                                            <NavLink to="/applications" active={isActive('/applications')} icon={<ClipboardList size={18} />}>
-                                                Applications
+                                            <NavLink to="/discovery" active={isActive('/discovery')} icon={<Sparkles size={18} className="text-amber-500" />}>
+                                                Discover
+                                            </NavLink>
+                                            <NavLink to="/applications" active={isActive('/applications')} icon={<Kanban size={18} />}>
+                                                My Board
                                             </NavLink>
                                         </>
                                     )}
@@ -51,31 +57,50 @@ const Navbar = () => {
                                     )}
                                 </div>
 
-                                <Link
-                                    to="/profile"
-                                    className={`p-2 rounded-xl transition-all ${isActive('/profile') ? 'bg-job-primary/10 text-job-primary' : 'text-gray-500 hover:bg-gray-100'}`}
-                                    title="Profile"
-                                >
-                                    {user?.profilePicture ? (
-                                        <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm ring-2 ring-job-primary/5">
-                                            <img
-                                                src={`http://localhost:5000/${user.profilePicture}`}
-                                                alt="Avatar"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <User size={24} />
-                                    )}
-                                </Link>
+                                <div className="flex items-center space-x-1 md:space-x-2 bg-gray-100/50 p-1 rounded-2xl">
+                                    {/* Messages with unread badge */}
+                                    <Link
+                                        to="/chat"
+                                        className={`relative p-2 rounded-xl transition-all ${isActive('/chat') ? 'bg-white text-job-primary shadow-sm' : 'text-gray-500 hover:text-job-dark hover:bg-white/50'}`}
+                                        title="Messages"
+                                    >
+                                        <MessageSquare size={18} />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-job-primary text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </span>
+                                        )}
+                                    </Link>
+                                    
+                                    <NotificationDropdown />
+                                    
+                                    <Link
+                                        to="/profile"
+                                        className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all ${isActive('/profile') ? 'bg-white text-job-primary shadow-sm' : 'text-gray-500 hover:text-job-dark hover:bg-white/50'}`}
+                                        title="My Profile"
+                                    >
+                                        {user?.profilePicture ? (
+                                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-white shadow-sm ring-2 ring-job-primary/5">
+                                                <img
+                                                    src={`http://localhost:5000/${user.profilePicture}`}
+                                                    alt="Avatar"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <User size={18} />
+                                        )}
+                                        <span className="hidden lg:inline text-xs font-black uppercase tracking-widest">Profile</span>
+                                    </Link>
 
-                                <Link
-                                    to="/settings"
-                                    className={`p-2 rounded-xl transition-all ${isActive('/settings') ? 'bg-job-primary/10 text-job-primary' : 'text-gray-500 hover:bg-gray-100'}`}
-                                    title="Settings"
-                                >
-                                    <Shield size={24} />
-                                </Link>
+                                    <Link
+                                        to="/settings"
+                                        className={`p-2 rounded-xl transition-all ${isActive('/settings') ? 'bg-white text-job-primary shadow-sm' : 'text-gray-500 hover:text-job-dark hover:bg-white/50'}`}
+                                        title="Account Settings"
+                                    >
+                                        <Shield size={18} />
+                                    </Link>
+                                </div>
 
                                 {user.role === 'admin' && (
                                     <Link

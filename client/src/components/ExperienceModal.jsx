@@ -24,6 +24,7 @@ const ExperienceModal = ({ isOpen, onClose, onSave, experience = null }) => {
         if (experience) {
             setFormData({
                 ...experience,
+                title: experience.title || experience.role || '',
                 isCurrent: experience.endDate === 'Present' || !experience.endDate
             });
         } else {

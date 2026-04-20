@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { X, Briefcase, Building2, MapPin, DollarSign, ListChecks, FileText, Send } from 'lucide-react';
+import { X, Briefcase, Building2, MapPin, DollarSign, ListChecks, FileText, Send, Sparkles } from 'lucide-react';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -14,7 +14,9 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
         type: 'Full-time',
         salary: '',
         description: '',
-        requirements: ''
+        requirements: '',
+        minAiScore: 0,
+        autoShortlist: false
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,7 +29,9 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                 type: job.type || 'Full-time',
                 salary: job.salary || '',
                 description: job.description || '',
-                requirements: Array.isArray(job.requirements) ? job.requirements.join(', ') : job.requirements || ''
+                requirements: Array.isArray(job.requirements) ? job.requirements.join(', ') : job.requirements || '',
+                minAiScore: job.shortlistCriteria?.minAiScore || 0,
+                autoShortlist: job.shortlistCriteria?.autoShortlist || false
             });
         } else {
             setFormData({
@@ -37,7 +41,9 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                 type: 'Full-time',
                 salary: '',
                 description: '',
-                requirements: ''
+                requirements: '',
+                minAiScore: 0,
+                autoShortlist: false
             });
         }
     }, [job, isOpen]);
@@ -48,15 +54,19 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
         try {
             const payload = {
                 ...formData,
-                requirements: formData.requirements.split(',').map(s => s.trim()).filter(s => s !== '')
+                requirements: formData.requirements.split(',').map(s => s.trim()).filter(s => s !== ''),
+                shortlistCriteria: {
+                    minAiScore: Number(formData.minAiScore),
+                    autoShortlist: formData.autoShortlist
+                }
             };
 
             if (job) {
                 await api.put(`/jobs/${job._id}`, payload);
-                toast.success('Mission parameters updated');
+                toast.success('Job details updated');
             } else {
                 await api.post('/jobs', payload);
-                toast.success('New mission deployed successfully');
+                toast.success('New job posted successfully');
             }
             onSuccess();
             onClose();
@@ -79,7 +89,7 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                             <Briefcase size={20} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-job-dark tracking-tighter">{job ? 'Modify Mission' : 'Deploy New Mission'}</h2>
+                            <h2 className="text-xl font-black text-job-dark tracking-tighter">{job ? 'Modify Job' : 'Post New Job'}</h2>
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Configuration Interface</p>
                         </div>
                     </div>
@@ -91,8 +101,8 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                 <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <Input
-                            label="Mission Title"
-                            placeholder="e.g. Senior Neural Architect"
+                            label="Job Title"
+                            placeholder="e.g. Senior Software Architect"
                             icon={Briefcase}
                             required
                             value={formData.title}
@@ -140,6 +150,20 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex items-center">
+                            <FileText size={12} className="mr-2 text-job-primary" />
+                            Job Description & Context
+                        </label>
+                        <textarea
+                            className="w-full bg-white/50 backdrop-blur-sm border border-white/60 rounded-2xl p-4 text-sm font-semibold text-job-dark placeholder:text-gray-300 focus:ring-4 focus:ring-job-primary/10 focus:border-job-primary hover:border-white transition-all outline-none min-h-[150px] resize-none"
+                            placeholder="Describe the mission, responsibilities, and team culture..."
+                            required
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+
                     <Input
                         label="Skill Matrix (Comma separated)"
                         placeholder="React, Node.js, AI Ethics"
@@ -149,16 +173,42 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                         className="font-mono text-xs"
                     />
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Mission Intelligence (Description)</label>
-                        <textarea
-                            required
-                            rows={5}
-                            placeholder="Define the scope of this mission..."
-                            className="w-full bg-white/50 border border-white/60 rounded-2xl p-4 text-sm font-medium text-job-dark focus:ring-2 focus:ring-job-primary/20 focus:border-job-primary transition-all outline-none resize-none placeholder:text-gray-300"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        ></textarea>
+                    <div className="space-y-4 border-t border-white/40 pt-8 mt-4">
+                        <div className="flex items-center space-x-2">
+                            <Sparkles className="text-job-secondary w-5 h-5" />
+                            <h3 className="text-xs font-black uppercase tracking-widest text-job-dark">AI Shortlisting Criteria</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-job-neutral/30 p-6 rounded-3xl border border-white/60">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min Match Score (%)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    className="w-full h-12 bg-white/50 border border-white/60 rounded-2xl px-4 text-sm font-black text-job-dark focus:ring-2 focus:ring-job-primary/20 focus:border-job-primary transition-all outline-none"
+                                    value={formData.minAiScore}
+                                    onChange={(e) => setFormData({ ...formData, minAiScore: e.target.value })}
+                                />
+                                <p className="text-[10px] text-gray-400 font-medium px-1">Candidates below this score will not be auto-shortlisted.</p>
+                            </div>
+
+                            <div className="flex items-center justify-between p-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-job-dark uppercase tracking-widest">Enable Auto-Shortlist</label>
+                                    <p className="text-[10px] text-gray-400 font-medium leading-tight">Upgrades candidates to 'Shortlisted' status automatically if match &ge; min score.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer" 
+                                        checked={formData.autoShortlist}
+                                        onChange={(e) => setFormData({ ...formData, autoShortlist: e.target.checked })}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-job-secondary"></div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex justify-end space-x-4 pt-4 shrink-0">
@@ -176,7 +226,7 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                             loading={isSubmitting}
                             icon={Send}
                         >
-                            {job ? 'Apply Parameters' : 'Deploy Mission'}
+                            {job ? 'Apply Changes' : 'Post Job'}
                         </Button>
                     </div>
                 </form>

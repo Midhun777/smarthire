@@ -20,20 +20,27 @@ import {
     Edit,
     Settings as SettingsIcon,
     X,
-    Camera
+    Camera,
+    Activity,
+    TrendingUp,
+    BarChart3,
+    CheckCircle2,
+    Users
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ExperienceModal from '../components/ExperienceModal';
+import EducationModal from '../components/EducationModal';
 import Input from '../components/ui/Input';
+import { GraduationCap } from 'lucide-react';
 
 const Profile = () => {
-    const navigate = useNavigate();
-    const { user } = useContext(AuthContext);
+    const { user, updateUser } = useContext(AuthContext);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [stats, setStats] = useState(null);
 
     // Refs for file inputs
     const resumeInputRef = useRef(null);
@@ -45,6 +52,11 @@ const Profile = () => {
     const [editingExpIndex, setEditingExpIndex] = useState(-1);
     const [isEditingSkills, setIsEditingSkills] = useState(false);
     const [newSkill, setNewSkill] = useState('');
+
+    // Education State
+    const [isEduModalOpen, setIsEduModalOpen] = useState(false);
+    const [editingEdu, setEditingEdu] = useState(null);
+    const [editingEduIndex, setEditingEduIndex] = useState(-1);
 
     const calculateDuration = (startDate, endDate) => {
         if (!startDate) return null;
@@ -70,6 +82,16 @@ const Profile = () => {
             try {
                 const { data } = await api.get('/users/profile');
                 setProfile(data);
+                
+                // If provider, fetch recruitment analytics
+                if (data.role === 'job_provider') {
+                    try {
+                        const statsRes = await api.get('/jobs/provider/analytics');
+                        setStats(statsRes.data);
+                    } catch (err) {
+                        console.error("Failed to fetch provider stats", err);
+                    }
+                }
             } catch (error) {
                 console.error(error);
                 toast.error("Failed to load profile");
@@ -185,6 +207,50 @@ const Profile = () => {
         }
     };
 
+    // --- EDUCATION HANDLERS ---
+    const handleAddEducation = () => {
+        setEditingEdu(null);
+        setEditingEduIndex(-1);
+        setIsEduModalOpen(true);
+    };
+
+    const handleEditEducation = (edu, index) => {
+        setEditingEdu(edu);
+        setEditingEduIndex(index);
+        setIsEduModalOpen(true);
+    };
+
+    const handleSaveEducation = async (eduData) => {
+        let updatedEducation = [...(profile.education || [])];
+        if (editingEduIndex > -1) {
+            updatedEducation[editingEduIndex] = eduData;
+        } else {
+            updatedEducation.unshift(eduData);
+        }
+
+        try {
+            const { data } = await api.put('/users/profile/education', { education: updatedEducation });
+            setProfile({ ...profile, education: data });
+            setIsEduModalOpen(false);
+            toast.success('Education history updated');
+        } catch (error) {
+            toast.error('Failed to update education');
+        }
+    };
+
+    const handleDeleteEducation = async (index) => {
+        if (!window.confirm('Are you sure you want to delete this record?')) return;
+
+        let updatedEducation = profile.education.filter((_, i) => i !== index);
+        try {
+            const { data } = await api.put('/users/profile/education', { education: updatedEducation });
+            setProfile({ ...profile, education: data });
+            toast.success('Record deleted');
+        } catch (error) {
+            toast.error('Failed to delete record');
+        }
+    };
+
     // --- SKILLS HANDLERS ---
     const handleAddSkill = async (e) => {
         e.preventDefault();
@@ -197,6 +263,7 @@ const Profile = () => {
         try {
             const { data } = await api.put('/users/profile/skills', { skills: updatedSkills });
             setProfile({ ...profile, skills: data });
+            if (updateUser) updateUser({ skills: data });
             setNewSkill('');
             toast.success('Skill added');
         } catch (error) {
@@ -209,6 +276,7 @@ const Profile = () => {
         try {
             const { data } = await api.put('/users/profile/skills', { skills: updatedSkills });
             setProfile({ ...profile, skills: data });
+            if (updateUser) updateUser({ skills: data });
             toast.success('Skill removed');
         } catch (error) {
             toast.error('Failed to remove skill');
@@ -309,248 +377,401 @@ const Profile = () => {
 
                             {profile?.bio && (
                                 <div className="mt-10 pt-10 border-t border-white/40">
-                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">About Me</h3>
+                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
+                                        {profile.role === 'job_provider' ? 'Company Mission' : 'About Me'}
+                                    </h3>
                                     <p className="text-sm text-gray-500 leading-relaxed font-medium italic">
                                         "{profile.bio}"
                                     </p>
                                 </div>
                             )}
 
-                            <div className="mt-10 pt-10 border-t border-white/40">
-                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Resume</h3>
-                                {profile?.resumeOriginalName ? (
-                                    <div className="flex items-center justify-between p-5 bg-white shadow-inner rounded-2xl border border-white/60 mb-6 group border-dashed border-2">
-                                        <div className="flex items-center truncate">
-                                            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mr-4">
-                                                <FileText size={20} />
-                                            </div>
-                                            <div className="flex flex-col truncate">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-green-600/60 leading-none mb-1 italic">Current Resume</span>
-                                                <span className="text-sm font-black text-job-dark truncate pr-2">{profile.resumeOriginalName}</span>
+                            {profile?.role !== 'job_provider' && (
+                                <div className="mt-10 pt-10 border-t border-white/40">
+                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Resume</h3>
+                                    {profile?.resumeOriginalName ? (
+                                        <div className="flex items-center justify-between p-5 bg-white shadow-inner rounded-2xl border border-white/60 mb-6 group border-dashed border-2">
+                                            <div className="flex items-center truncate">
+                                                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mr-4">
+                                                    <FileText size={20} />
+                                                </div>
+                                                <div className="flex flex-col truncate">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-green-600/60 leading-none mb-1 italic">Current Resume</span>
+                                                    <span className="text-sm font-black text-job-dark truncate pr-2">{profile.resumeOriginalName}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-6 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200 mb-6">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Resume Found</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div className="text-center py-6 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200 mb-6">
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Resume Found</p>
+                                        </div>
+                                    )}
 
-                                <div className="block group">
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        ref={resumeInputRef}
-                                        accept=".pdf"
-                                        onChange={handleResumeUpload}
-                                        disabled={uploading}
-                                    />
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full justify-center py-4 bg-white hover:bg-job-primary hover:text-white border-2 border-job-primary/20 hover:border-job-primary shadow-xl shadow-job-primary/5 group-active:scale-95"
-                                        loading={uploading}
-                                        icon={Upload}
-                                        onClick={() => resumeInputRef.current?.click()}
-                                    >
-                                        Update Resume
-                                    </Button>
+                                    <div className="block group">
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            ref={resumeInputRef}
+                                            accept=".pdf"
+                                            onChange={handleResumeUpload}
+                                            disabled={uploading}
+                                        />
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full justify-center py-4 bg-white hover:bg-job-primary hover:text-white border-2 border-job-primary/20 hover:border-job-primary shadow-xl shadow-job-primary/5 group-active:scale-95"
+                                            loading={uploading}
+                                            icon={Upload}
+                                            onClick={() => resumeInputRef.current?.click()}
+                                        >
+                                            Update Resume
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </Card>
                 </aside>
 
                 {/* Right Main Content */}
                 <main className="lg:w-2/3 space-y-10">
-
-                    {/* Skills Section */}
-                    <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
-                        {/* Blob */}
-                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-job-primary/5 rounded-full blur-3xl pointer-events-none" />
-
-                        <div className="flex items-center justify-between mb-10 relative z-10">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-job-primary/10 rounded-2xl flex items-center justify-center text-job-primary border border-job-primary/20">
-                                    <Award size={24} />
+                    {profile?.role === 'job_provider' ? (
+                        <>
+                            {/* Provider Metrics */}
+                            <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
+                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-job-primary/5 rounded-full blur-3xl pointer-events-none" />
+                                <div className="flex items-center space-x-4 mb-10">
+                                    <div className="w-12 h-12 bg-job-primary/10 rounded-2xl flex items-center justify-center text-job-primary border border-job-primary/20">
+                                        <BarChart3 size={24} />
+                                    </div>
+                                    <h2 className="text-3xl font-black text-job-dark tracking-tight">Recruitment Analytics</h2>
                                 </div>
-                                <h2 className="text-3xl font-black text-job-dark tracking-tight">Skills</h2>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                className={`p-3 ${isEditingSkills ? 'bg-job-primary text-white' : 'bg-gray-100/50'}`}
-                                onClick={() => setIsEditingSkills(!isEditingSkills)}
-                            >
-                                {isEditingSkills ? <X size={20} /> : <Edit size={20} />}
-                            </Button>
-                        </div>
 
-                        {isEditingSkills && (
-                            <form onSubmit={handleAddSkill} className="mb-8 flex gap-3 animate-in slide-in-from-top-2 duration-300">
-                                <Input
-                                    placeholder="Enter new skill..."
-                                    value={newSkill}
-                                    onChange={(e) => setNewSkill(e.target.value)}
-                                    className="flex-grow"
-                                />
-                                <Button type="submit" icon={Plus} className="px-8">Add Skill</Button>
-                            </form>
-                        )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+                                    <MetricCard icon={Briefcase} label="Active Jobs" value={stats?.activeJobs || 0} color="text-job-primary" bgColor="bg-job-primary/10" />
+                                    <MetricCard icon={Users} label="Applicants" value={stats?.totalApplications || 0} color="text-job-secondary" bgColor="bg-job-secondary/10" />
+                                    <MetricCard icon={Sparkles} label="Shortlisted" value={stats?.shortlisted || 0} color="text-job-accent" bgColor="bg-job-accent/10" />
+                                    <MetricCard icon={CheckCircle2} label="Hires" value={stats?.hiresSecured || 0} color="text-green-600" bgColor="bg-green-100" />
+                                </div>
+                            </Card>
 
-                        <div className="flex flex-wrap gap-3 relative z-10">
-                            {profile?.skills?.length > 0 ? (
-                                profile.skills.map((skill, index) => (
-                                    <Badge
-                                        key={index}
-                                        variant="primary"
-                                        className="px-6 py-3 text-sm font-black border-2 border-job-primary/10 hover:border-job-primary/40 hover:scale-105 transition-all cursor-default bg-white/50 backdrop-blur-sm relative group/skill"
+                            {/* Compliance & Verification */}
+                            <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
+                                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-green-500/5 rounded-full blur-3xl pointer-events-none" />
+                                <div className="flex items-center justify-between mb-10 relative z-10">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 border border-green-100">
+                                            <ShieldCheck size={24} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-job-dark tracking-tight">Enterprise Verification</h2>
+                                    </div>
+                                    <Badge variant="success" className="bg-green-500 text-white px-4 py-1 border-0">VERIFIED ENTITY</Badge>
+                                </div>
+
+                                <div className="bg-green-50/50 border border-green-100 p-8 rounded-[2.5rem] relative z-10">
+                                    <div className="flex items-start">
+                                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-green-600 shrink-0 mr-6">
+                                            <CheckCircle2 size={24} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-lg font-black text-job-dark mb-2 uppercase tracking-tight">System Validated</h4>
+                                            <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                                                Your provider account is currently verified for direct hiring. All job postings receive the "Verified Recruiter" badge, increasing applicant trust by 84%.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        </>
+                    ) : (
+                        <>
+                            {/* Skills Section */}
+                            <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
+                                {/* Blob */}
+                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-job-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="flex items-center justify-between mb-10 relative z-10">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-job-primary/10 rounded-2xl flex items-center justify-center text-job-primary border border-job-primary/20">
+                                            <Award size={24} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-job-dark tracking-tight">Skills</h2>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        className={`p-3 ${isEditingSkills ? 'bg-job-primary text-white' : 'bg-gray-100/50'}`}
+                                        onClick={() => setIsEditingSkills(!isEditingSkills)}
                                     >
-                                        <div className="flex items-center">
-                                            {skill}
-                                            {isEditingSkills && (
-                                                <button
-                                                    onClick={() => handleRemoveSkill(skill)}
-                                                    className="ml-2 p-1 hover:bg-rose-500 hover:text-white rounded-lg transition-colors bg-white/50"
-                                                >
-                                                    <X size={12} strokeWidth={3} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </Badge>
-                                ))
-                            ) : (
-                                <div className="w-full text-center py-10 bg-gray-50/50 rounded-3xl border-2 border-dashed border-indigo-100">
-                                    <Sparkles className="mx-auto w-10 h-10 text-indigo-100 mb-4" />
-                                    <p className="text-gray-400 font-bold">Your skill stack is empty</p>
-                                    <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Upload resume to auto-populate</p>
+                                        {isEditingSkills ? <X size={20} /> : <Edit size={20} />}
+                                    </Button>
                                 </div>
-                            )}
-                        </div>
-                    </Card>
 
-                    {/* Experience Section */}
-                    <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
-                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-job-secondary/5 rounded-full blur-3xl pointer-events-none" />
+                                {isEditingSkills && (
+                                    <form onSubmit={handleAddSkill} className="mb-8 flex gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <Input
+                                            placeholder="Enter new skill..."
+                                            value={newSkill}
+                                            onChange={(e) => setNewSkill(e.target.value)}
+                                            className="flex-grow"
+                                        />
+                                        <Button type="submit" icon={Plus} className="px-8">Add Skill</Button>
+                                    </form>
+                                )}
 
-                        <div className="flex items-center justify-between mb-10 relative z-10">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-job-secondary/10 rounded-2xl flex items-center justify-center text-job-secondary border border-job-secondary/20">
-                                    <Briefcase size={24} />
-                                </div>
-                                <h2 className="text-3xl font-black text-job-dark tracking-tight">Experience</h2>
-                            </div>
-                            <Button variant="ghost" className="p-3 bg-gray-100/50" onClick={handleAddExperience}>
-                                <Plus size={20} />
-                            </Button>
-                        </div>
-
-                        <div className="space-y-12 relative z-10 px-4">
-                            {profile?.experience?.length > 0 ? (
-                                profile.experience.map((exp, index) => (
-                                    <div key={index} className="flex gap-8 group">
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-14 h-14 rounded-2xl bg-white border border-white/60 shadow-lg flex items-center justify-center text-gray-400 group-hover:bg-job-secondary group-hover:text-white transition-all duration-300 group-hover:scale-110 shadow-job-secondary/5 group-hover:shadow-job-secondary/20 relative z-10">
-                                                <BriefcaseBusiness size={24} />
-                                            </div>
-                                            {index !== profile.experience.length - 1 && (
-                                                <div className="w-1 h-20 bg-gradient-to-b from-gray-100 to-transparent rounded-full -mt-2 opacity-50"></div>
-                                            )}
-                                        </div>
-                                        <div className="flex-grow pb-4">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
-                                                <div>
-                                                    <h3 className="text-xl font-black text-job-dark tracking-tight group-hover:text-job-secondary transition-colors duration-300">
-                                                        {exp.role || exp.title}
-                                                    </h3>
-                                                    <div className="flex items-center space-x-3 mt-1">
-                                                        <span className="text-sm font-black text-job-secondary tracking-widest uppercase">{exp.company}</span>
-                                                        <div className="w-1 h-1 bg-gray-300 rounded-full" />
-                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100/80 px-2 py-1 rounded-lg">
-                                                            {exp.employmentType || 'Full-time'}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex flex-wrap items-center gap-3 mt-3">
-                                                        <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
-                                                            <Calendar size={14} className="mr-2 text-job-secondary" />
-                                                            {exp.startDate || 'Start Date'} - {exp.endDate || 'Present'}
-                                                            <span className="mx-2 text-gray-300">|</span>
-                                                            <span className="text-job-secondary">{calculateDuration(exp.startDate, exp.endDate)}</span>
-                                                        </span>
-
-                                                        {exp.location && (
-                                                            <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
-                                                                <MapPin size={14} className="mr-2 text-job-secondary" />
-                                                                {exp.location}
-                                                            </span>
-                                                        )}
-
-                                                        {exp.industry && (
-                                                            <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
-                                                                <Briefcase size={14} className="mr-2 text-job-secondary" />
-                                                                {exp.industry}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {exp.mediaLink && (
-                                                        <a
-                                                            href={exp.mediaLink}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="p-2 hover:bg-job-primary/10 text-job-primary rounded-lg transition-colors border border-transparent hover:border-job-primary/20"
+                                <div className="flex flex-wrap gap-3 relative z-10">
+                                    {profile?.skills?.length > 0 ? (
+                                        profile.skills.map((skill, index) => (
+                                            <Badge
+                                                key={index}
+                                                variant="primary"
+                                                className="px-6 py-3 text-sm font-black border-2 border-job-primary/10 hover:border-job-primary/40 hover:scale-105 transition-all cursor-default bg-white/50 backdrop-blur-sm relative group/skill"
+                                            >
+                                                <div className="flex items-center">
+                                                    {skill}
+                                                    {isEditingSkills && (
+                                                        <button
+                                                            onClick={() => handleRemoveSkill(skill)}
+                                                            className="ml-2 p-1 hover:bg-rose-500 hover:text-white rounded-lg transition-colors bg-white/50"
                                                         >
-                                                            <ExternalLink size={16} />
-                                                        </a>
+                                                            <X size={12} strokeWidth={3} />
+                                                        </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => handleEditExperience(exp, index)}
-                                                        className="p-2 hover:bg-job-secondary/10 text-job-secondary rounded-lg transition-colors"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteExperience(index)}
-                                                        className="p-2 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                </div>
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <div className="w-full text-center py-10 bg-gray-50/50 rounded-3xl border-2 border-dashed border-indigo-100">
+                                            <Sparkles className="mx-auto w-10 h-10 text-indigo-100 mb-4" />
+                                            <p className="text-gray-400 font-bold">Your skill stack is empty</p>
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Upload resume to auto-populate</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+
+                            {/* Experience Section */}
+                            <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
+                                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-job-secondary/5 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="flex items-center justify-between mb-10 relative z-10">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-job-secondary/10 rounded-2xl flex items-center justify-center text-job-secondary border border-job-secondary/20">
+                                            <Briefcase size={24} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-job-dark tracking-tight">Experience</h2>
+                                    </div>
+                                    <Button variant="ghost" className="p-3 bg-gray-100/50" onClick={handleAddExperience}>
+                                        <Plus size={20} />
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-12 relative z-10 px-4">
+                                    {profile?.experience?.length > 0 ? (
+                                        profile.experience.map((exp, index) => (
+                                            <div key={index} className="flex gap-8 group">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="w-14 h-14 rounded-2xl bg-white border border-white/60 shadow-lg flex items-center justify-center text-gray-400 group-hover:bg-job-secondary group-hover:text-white transition-all duration-300 group-hover:scale-110 shadow-job-secondary/5 group-hover:shadow-job-secondary/20 relative z-10">
+                                                        <BriefcaseBusiness size={24} />
+                                                    </div>
+                                                    {index !== profile.experience.length - 1 && (
+                                                        <div className="w-1 h-20 bg-gradient-to-b from-gray-100 to-transparent rounded-full -mt-2 opacity-50"></div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-grow pb-4">
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+                                                        <div>
+                                                            <h3 className="text-xl font-black text-job-dark tracking-tight group-hover:text-job-secondary transition-colors duration-300">
+                                                                {exp.title || exp.role}
+                                                            </h3>
+                                                            <div className="flex items-center space-x-3 mt-1">
+                                                                <span className="text-sm font-black text-job-secondary tracking-widest uppercase">{exp.company}</span>
+                                                                <div className="w-1 h-1 bg-gray-300 rounded-full" />
+                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100/80 px-2 py-1 rounded-lg">
+                                                                    {exp.employmentType || 'Full-time'}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="flex flex-wrap items-center gap-3 mt-3">
+                                                                <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
+                                                                    <Calendar size={14} className="mr-2 text-job-secondary" />
+                                                                    {exp.startDate || 'Start Date'} - {exp.endDate || 'Present'}
+                                                                    <span className="mx-2 text-gray-300">|</span>
+                                                                    <span className="text-job-secondary">{calculateDuration(exp.startDate, exp.endDate)}</span>
+                                                                </span>
+
+                                                                {exp.location && (
+                                                                    <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
+                                                                        <MapPin size={14} className="mr-2 text-job-secondary" />
+                                                                        {exp.location}
+                                                                    </span>
+                                                                )}
+
+                                                                {exp.industry && (
+                                                                    <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
+                                                                        <Briefcase size={14} className="mr-2 text-job-secondary" />
+                                                                        {exp.industry}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {exp.mediaLink && (
+                                                                <a
+                                                                    href={exp.mediaLink}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="p-2 hover:bg-job-primary/10 text-job-primary rounded-lg transition-colors border border-transparent hover:border-job-primary/20"
+                                                                >
+                                                                    <ExternalLink size={16} />
+                                                                </a>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleEditExperience(exp, index)}
+                                                                className="p-2 hover:bg-job-secondary/10 text-job-secondary rounded-lg transition-colors"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteExperience(index)}
+                                                                className="p-2 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4 space-y-4">
+                                                        {exp.description && (
+                                                            <div className="relative">
+                                                                <p className="text-sm text-gray-500 leading-relaxed font-medium bg-white/40 border border-white/60 p-6 rounded-[2rem] group-hover:bg-white group-hover:shadow-xl transition-all duration-500 backdrop-blur-sm shadow-sm group-hover:shadow-job-secondary/5">
+                                                                    {exp.description}
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {exp.skills?.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2 px-2">
+                                                                {exp.skills.map((skill, sIdx) => (
+                                                                    <span key={sIdx} className="text-[10px] font-black text-job-secondary uppercase tracking-widest bg-job-secondary/5 border border-job-secondary/10 px-3 py-1 rounded-full">
+                                                                        {skill}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            <div className="mt-4 space-y-4">
-                                                {exp.description && (
-                                                    <div className="relative">
-                                                        <p className="text-sm text-gray-500 leading-relaxed font-medium bg-white/40 border border-white/60 p-6 rounded-[2rem] group-hover:bg-white group-hover:shadow-xl transition-all duration-500 backdrop-blur-sm shadow-sm group-hover:shadow-job-secondary/5">
-                                                            {exp.description}
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                {exp.skills?.length > 0 && (
-                                                    <div className="flex flex-wrap gap-2 px-2">
-                                                        {exp.skills.map((skill, sIdx) => (
-                                                            <span key={sIdx} className="text-[10px] font-black text-job-secondary uppercase tracking-widest bg-job-secondary/5 border border-job-secondary/10 px-3 py-1 rounded-full">
-                                                                {skill}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-20 bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
+                                            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg text-gray-200 mb-6">
+                                                <Briefcase size={32} />
                                             </div>
+                                            <p className="text-gray-400 font-black text-lg">No experience history yet</p>
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Populate your history to stand out</p>
                                         </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-20 bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
-                                    <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg text-gray-200 mb-6">
-                                        <Briefcase size={32} />
-                                    </div>
-                                    <p className="text-gray-400 font-black text-lg">No experience history yet</p>
-                                    <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Populate your history to stand out</p>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </Card>
+                            </Card>
+
+                            {/* Education Section */}
+                            <Card className="p-10 border-white/40 shadow-xl shadow-job-primary/5 overflow-hidden relative">
+                                <div className="absolute -top-24 -left-24 w-64 h-64 bg-job-accent/5 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="flex items-center justify-between mb-10 relative z-10">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-job-accent/10 rounded-2xl flex items-center justify-center text-job-accent border border-job-accent/20">
+                                            <GraduationCap size={24} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-job-dark tracking-tight">Education</h2>
+                                    </div>
+                                    <Button variant="ghost" className="p-3 bg-gray-100/50" onClick={handleAddEducation}>
+                                        <Plus size={20} />
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-12 relative z-10 px-4">
+                                    {profile?.education?.length > 0 ? (
+                                        profile.education.map((edu, index) => (
+                                            <div key={index} className="flex gap-8 group">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="w-14 h-14 rounded-2xl bg-white border border-white/60 shadow-lg flex items-center justify-center text-gray-400 group-hover:bg-job-accent group-hover:text-white transition-all duration-300 group-hover:scale-110 shadow-job-accent/5 group-hover:shadow-job-accent/20 relative z-10">
+                                                        <GraduationCap size={24} />
+                                                    </div>
+                                                    {index !== profile.education.length - 1 && (
+                                                        <div className="w-1 h-20 bg-gradient-to-b from-gray-100 to-transparent rounded-full -mt-2 opacity-50"></div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-grow pb-4">
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+                                                        <div>
+                                                            <h3 className="text-xl font-black text-job-dark tracking-tight group-hover:text-job-accent transition-colors duration-300">
+                                                                {edu.degree}
+                                                            </h3>
+                                                            <div className="flex items-center space-x-3 mt-1">
+                                                                <span className="text-sm font-black text-job-accent tracking-widest uppercase">{edu.school}</span>
+                                                                {edu.fieldOfStudy && (
+                                                                    <>
+                                                                        <div className="w-1 h-1 bg-gray-300 rounded-full" />
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100/80 px-2 py-1 rounded-lg">
+                                                                            {edu.fieldOfStudy}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex flex-wrap items-center gap-3 mt-3">
+                                                                <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
+                                                                    <Calendar size={14} className="mr-2 text-job-accent" />
+                                                                    {edu.startDate || 'N/A'} - {edu.endDate || 'Present'}
+                                                                </span>
+
+                                                                {edu.location && (
+                                                                    <span className="flex items-center text-xs font-bold text-gray-500 bg-white/60 border border-white/80 px-3 py-1.5 rounded-xl shadow-sm">
+                                                                        <MapPin size={14} className="mr-2 text-job-accent" />
+                                                                        {edu.location}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleEditEducation(edu, index)}
+                                                                className="p-2 hover:bg-job-accent/10 text-job-accent rounded-lg transition-colors"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteEducation(index)}
+                                                                className="p-2 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {edu.description && (
+                                                        <div className="mt-4 relative">
+                                                            <p className="text-sm text-gray-500 leading-relaxed font-medium bg-white/40 border border-white/60 p-6 rounded-[2rem] group-hover:bg-white group-hover:shadow-xl transition-all duration-500 backdrop-blur-sm shadow-sm group-hover:shadow-job-accent/5">
+                                                                {edu.description}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-20 bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
+                                            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg text-gray-200 mb-6">
+                                                <GraduationCap size={32} />
+                                            </div>
+                                            <p className="text-gray-400 font-black text-lg">No education history yet</p>
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Add your academic profile</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        </>
+                    )}
                 </main>
             </div>
 
@@ -561,9 +782,27 @@ const Profile = () => {
                 onSave={handleSaveExperience}
                 experience={editingExp}
             />
+            <EducationModal
+                isOpen={isEduModalOpen}
+                onClose={() => setIsEduModalOpen(false)}
+                onSave={handleSaveEducation}
+                education={editingEdu}
+            />
         </div>
     );
 };
+
+const MetricCard = ({ icon: Icon, label, value, color, bgColor }) => (
+    <div className={`p-6 ${bgColor} rounded-3xl border border-white/20 transition-all hover:scale-105 duration-300`}>
+        <div className="flex flex-col items-center text-center">
+            <div className={`w-10 h-10 ${bgColor} rounded-xl flex items-center justify-center ${color} mb-3 shadow-sm`}>
+                <Icon size={20} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">{label}</span>
+            <span className={`text-2xl font-black ${color}`}>{value}</span>
+        </div>
+    </div>
+);
 
 const BriefcaseBusiness = ({ size, ...props }) => (
     <svg
