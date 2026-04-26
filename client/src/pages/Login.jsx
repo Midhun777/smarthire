@@ -7,6 +7,7 @@ import AuthContext from '../context/AuthContext';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import logo from '../assets/logo.png';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -45,10 +46,12 @@ const Login = () => {
 
                 <div className="relative z-10">
                     <div className="text-center mb-10">
-                        <div className="w-16 h-16 bg-job-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-job-primary/20">
-                            <LogIn className="text-job-primary w-8 h-8" />
-                        </div>
-                        <h2 className="text-3xl font-extrabold text-job-dark tracking-tight">Login</h2>
+                        <Link to="/" className="inline-block mb-6 group">
+                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-job-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 overflow-hidden border border-gray-100">
+                                <img src={logo} alt="SmartHire Logo" className="w-full h-full object-contain p-2" />
+                            </div>
+                        </Link>
+                        <h2 className="text-3xl font-black text-job-dark tracking-tight">Login</h2>
                         <p className="text-gray-500 mt-2 font-medium">Welcome back to SmartHire</p>
                     </div>
 

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { LayoutDashboard, ClipboardList, User, LogOut, Shield, BriefcaseBusiness, Sparkles, Kanban, MessageSquare } from 'lucide-react';
+import logo from '../assets/logo.png';
 import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
@@ -23,13 +24,18 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-20">
                     <div className="flex items-center">
-                        <Link to="/" className="flex items-center space-x-2 group">
-                            <div className="w-10 h-10 bg-job-primary rounded-xl flex items-center justify-center shadow-lg shadow-job-primary/20 group-hover:scale-110 transition-all">
-                                <BriefcaseBusiness className="text-white w-6 h-6" />
+                        <Link to="/" className="flex items-center space-x-3 group">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-job-primary/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 overflow-hidden border border-gray-100">
+                                <img src={logo} alt="SmartHire Logo" className="w-full h-full object-contain p-1" />
                             </div>
-                            <span className="font-extrabold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-job-primary to-job-secondary">
-                                SmartHire
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="font-black text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-job-primary via-indigo-600 to-job-secondary leading-none">
+                                    SmartHire
+                                </span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-job-primary/60 mt-0.5 ml-0.5">
+                                    AI Powered
+                                </span>
+                            </div>
                         </Link>
                     </div>
 

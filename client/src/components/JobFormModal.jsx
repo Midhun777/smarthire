@@ -15,6 +15,7 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
         salary: '',
         description: '',
         requirements: '',
+        experienceLevel: 'Entry Level',
         minAiScore: 0,
         autoShortlist: false
     });
@@ -27,9 +28,10 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                 company: job.company || '',
                 location: job.location || '',
                 type: job.type || 'Full-time',
-                salary: job.salary || '',
+                salary: job.salaryRange || '',
                 description: job.description || '',
                 requirements: Array.isArray(job.requirements) ? job.requirements.join(', ') : job.requirements || '',
+                experienceLevel: job.experienceLevel || 'Entry Level',
                 minAiScore: job.shortlistCriteria?.minAiScore || 0,
                 autoShortlist: job.shortlistCriteria?.autoShortlist || false
             });
@@ -42,6 +44,7 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                 salary: '',
                 description: '',
                 requirements: '',
+                experienceLevel: 'Entry Level',
                 minAiScore: 0,
                 autoShortlist: false
             });
@@ -52,8 +55,10 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const { salary, ...rest } = formData;
             const payload = {
-                ...formData,
+                ...rest,
+                salaryRange: salary,
                 requirements: formData.requirements.split(',').map(s => s.trim()).filter(s => s !== ''),
                 shortlistCriteria: {
                     minAiScore: Number(formData.minAiScore),
@@ -139,6 +144,20 @@ const JobFormModal = ({ isOpen, onClose, onSuccess, job }) => {
                                 <option>Contract</option>
                                 <option>Freelance</option>
                                 <option>Internship</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Expertise Level</label>
+                            <select
+                                className="w-full h-12 bg-white/50 border border-white/60 rounded-2xl px-4 text-sm font-black text-job-dark focus:ring-2 focus:ring-job-primary/20 focus:border-job-primary transition-all outline-none appearance-none"
+                                value={formData.experienceLevel}
+                                onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
+                            >
+                                <option>Entry Level</option>
+                                <option>Mid Level</option>
+                                <option>Senior Level</option>
+                                <option>Lead / Manager</option>
+                                <option>Executive</option>
                             </select>
                         </div>
                         <Input
